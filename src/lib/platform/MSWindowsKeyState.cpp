@@ -2,11 +2,11 @@
  * barrier -- mouse and keyboard sharing utility
  * Copyright (C) 2012-2016 Symless Ltd.
  * Copyright (C) 2003 Chris Schoeneman
- * 
+ *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * found in the file LICENSE that should have accompanied this file.
- * 
+ *
  * This package is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -21,7 +21,6 @@
 #include "platform/MSWindowsDesks.h"
 #include "mt/Thread.h"
 #include "arch/win32/ArchMiscWindows.h"
-#include "base/FunctionJob.h"
 #include "base/Log.h"
 #include "base/String.h"
 #include "base/IEventQueue.h"
@@ -61,17 +60,17 @@ const KeyID				MSWindowsKeyState::s_virtualKey[] =
 	/* 0x012 */ { kKeyAlt_L },		// VK_MENU
 	/* 0x013 */ { kKeyPause },		// VK_PAUSE
 	/* 0x014 */ { kKeyCapsLock },	// VK_CAPITAL
-	/* 0x015 */ { kKeyKana },		// VK_HANGUL, VK_KANA
-	/* 0x016 */ { kKeyNone },		// undefined
+	/* 0x015 */ { kKeyNone },		// undefined
+	/* 0x016 */ { kKeyKana },		// VK_HANGUL, VK_KANA, VK_IME_ON
 	/* 0x017 */ { kKeyNone },		// VK_JUNJA
 	/* 0x018 */ { kKeyNone },		// VK_FINAL
 	/* 0x019 */ { kKeyKanzi },		// VK_HANJA, VK_KANJI
-	/* 0x01a */ { kKeyNone },		// undefined
+	/* 0x01a */ { kKeyEisuToggle },	// VK_IME_OFF
 	/* 0x01b */ { kKeyEscape },		// VK_ESCAPE
-	/* 0x01c */ { kKeyHenkan },		// VK_CONVERT		
-	/* 0x01d */ { kKeyMuhenkan },	// VK_NONCONVERT	
-	/* 0x01e */ { kKeyNone },		// VK_ACCEPT		
-	/* 0x01f */ { kKeyNone },		// VK_MODECHANGE	
+	/* 0x01c */ { kKeyHenkan },		// VK_CONVERT
+	/* 0x01d */ { kKeyMuhenkan },	// VK_NONCONVERT
+	/* 0x01e */ { kKeyNone },		// VK_ACCEPT
+	/* 0x01f */ { kKeyNone },		// VK_MODECHANGE
 	/* 0x020 */ { kKeyNone },		// VK_SPACE
 	/* 0x021 */ { kKeyKP_PageUp },	// VK_PRIOR
 	/* 0x022 */ { kKeyKP_PageDown },// VK_NEXT
@@ -286,15 +285,15 @@ const KeyID				MSWindowsKeyState::s_virtualKey[] =
 	/* 0x0f3 */ { kKeyZenkaku },	// VK_OEM_AUTO
 	/* 0x0f4 */ { kKeyZenkaku },	// VK_OEM_ENLW
 	/* 0x0f5 */ { kKeyNone },		// OEM specific
-	/* 0x0f6 */ { kKeyNone },		// VK_ATTN			
-	/* 0x0f7 */ { kKeyNone },		// VK_CRSEL			
-	/* 0x0f8 */ { kKeyNone },		// VK_EXSEL			
-	/* 0x0f9 */ { kKeyNone },		// VK_EREOF			
-	/* 0x0fa */ { kKeyNone },		// VK_PLAY			
-	/* 0x0fb */ { kKeyNone },		// VK_ZOOM			
+	/* 0x0f6 */ { kKeyNone },		// VK_ATTN
+	/* 0x0f7 */ { kKeyNone },		// VK_CRSEL
+	/* 0x0f8 */ { kKeyNone },		// VK_EXSEL
+	/* 0x0f9 */ { kKeyNone },		// VK_EREOF
+	/* 0x0fa */ { kKeyNone },		// VK_PLAY
+	/* 0x0fb */ { kKeyNone },		// VK_ZOOM
 	/* 0x0fc */ { kKeyNone },		// reserved
-	/* 0x0fd */ { kKeyNone },		// VK_PA1			
-	/* 0x0fe */ { kKeyNone },		// VK_OEM_CLEAR		
+	/* 0x0fd */ { kKeyNone },		// VK_PA1
+	/* 0x0fe */ { kKeyNone },		// VK_OEM_CLEAR
 	/* 0x0ff */ { kKeyNone },		// reserved
 
 	/* 0x100 */ { kKeyNone },		// reserved
@@ -320,15 +319,15 @@ const KeyID				MSWindowsKeyState::s_virtualKey[] =
 	/* 0x114 */ { kKeyNone },		// VK_CAPITAL
 	/* 0x115 */ { kKeyHangul },		// VK_HANGUL
 	/* 0x116 */ { kKeyNone },		// undefined
-	/* 0x117 */ { kKeyNone },		// VK_JUNJA			
-	/* 0x118 */ { kKeyNone },		// VK_FINAL			
+	/* 0x117 */ { kKeyNone },		// VK_JUNJA
+	/* 0x118 */ { kKeyNone },		// VK_FINAL
 	/* 0x119 */ { kKeyHanja },		// VK_HANJA
 	/* 0x11a */ { kKeyNone },		// undefined
 	/* 0x11b */ { kKeyNone },		// VK_ESCAPE
-	/* 0x11c */ { kKeyNone },		// VK_CONVERT		
-	/* 0x11d */ { kKeyNone },		// VK_NONCONVERT	
-	/* 0x11e */ { kKeyNone },		// VK_ACCEPT		
-	/* 0x11f */ { kKeyNone },		// VK_MODECHANGE	
+	/* 0x11c */ { kKeyNone },		// VK_CONVERT
+	/* 0x11d */ { kKeyNone },		// VK_NONCONVERT
+	/* 0x11e */ { kKeyNone },		// VK_ACCEPT
+	/* 0x11f */ { kKeyNone },		// VK_MODECHANGE
 	/* 0x120 */ { kKeyNone },		// VK_SPACE
 	/* 0x121 */ { kKeyPageUp },		// VK_PRIOR
 	/* 0x122 */ { kKeyPageDown },	// VK_NEXT
@@ -543,15 +542,15 @@ const KeyID				MSWindowsKeyState::s_virtualKey[] =
 	/* 0x1f3 */ { kKeyNone },		// VK_OEM_AUTO
 	/* 0x1f4 */ { kKeyNone },		// VK_OEM_ENLW
 	/* 0x1f5 */ { kKeyNone },		// OEM specific
-	/* 0x1f6 */ { kKeyNone },		// VK_ATTN			
-	/* 0x1f7 */ { kKeyNone },		// VK_CRSEL			
-	/* 0x1f8 */ { kKeyNone },		// VK_EXSEL			
-	/* 0x1f9 */ { kKeyNone },		// VK_EREOF			
-	/* 0x1fa */ { kKeyNone },		// VK_PLAY			
-	/* 0x1fb */ { kKeyNone },		// VK_ZOOM			
+	/* 0x1f6 */ { kKeyNone },		// VK_ATTN
+	/* 0x1f7 */ { kKeyNone },		// VK_CRSEL
+	/* 0x1f8 */ { kKeyNone },		// VK_EXSEL
+	/* 0x1f9 */ { kKeyNone },		// VK_EREOF
+	/* 0x1fa */ { kKeyNone },		// VK_PLAY
+	/* 0x1fb */ { kKeyNone },		// VK_ZOOM
 	/* 0x1fc */ { kKeyNone },		// reserved
-	/* 0x1fd */ { kKeyNone },		// VK_PA1			
-	/* 0x1fe */ { kKeyNone },		// VK_OEM_CLEAR		
+	/* 0x1fd */ { kKeyNone },		// VK_PA1
+	/* 0x1fe */ { kKeyNone },		// VK_OEM_CLEAR
 	/* 0x1ff */ { kKeyNone }		// reserved
 };
 
@@ -688,34 +687,17 @@ MSWindowsKeyState::mapKeyFromEvent(WPARAM charAndVirtKey,
 		KeyModifierControl | KeyModifierAlt;
 
 	// extract character, virtual key, and if we didn't use AltGr
-	char c       = (char)((charAndVirtKey & 0xff00u) >> 8);
-	UINT vkCode  = (charAndVirtKey & 0xffu);
-	bool noAltGr = ((charAndVirtKey & 0xff0000u) != 0);
+	WCHAR wc     = (WCHAR)(charAndVirtKey & 0xffffu);
+	UINT vkCode  = ((charAndVirtKey >> 16) & 0xffu);
+	bool noAltGr = ((charAndVirtKey & 0xff000000u) != 0);
 
 	// handle some keys via table lookup
 	KeyID id     = getKeyID(vkCode, (KeyButton)((info >> 16) & 0x1ffu));
 
 	// check if not in table;  map character to key id
-	if (id == kKeyNone && c != 0) {
-		if ((c & 0x80u) == 0) {
-			// ASCII
-			id = static_cast<KeyID>(c) & 0xffu;
-		}
-		else {
-			// character is not really ASCII.  instead it's some
-			// character in the current ANSI code page.  try to
-			// convert that to a Unicode character.  if we fail
-			// then use the single byte character as is.
-			char src = c;
-			wchar_t unicode;
-			if (MultiByteToWideChar(CP_THREAD_ACP, MB_PRECOMPOSED,
-										&src, 1, &unicode, 1) > 0) {
-				id = static_cast<KeyID>(unicode);
-			}
-			else {
-				id = static_cast<KeyID>(c) & 0xffu;
-			}
-		}
+	if (id == kKeyNone && wc != 0) {
+		// UTF16
+		id = static_cast<KeyID>(wc) & 0xffffu;
 	}
 
 	// set modifier mask
@@ -821,15 +803,14 @@ MSWindowsKeyState::fakeCtrlAltDel()
 		CloseHandle(hEvtSendSas);
 	}
 	else {
-		Thread cad(new FunctionJob(&MSWindowsKeyState::ctrlAltDelThread));
+        Thread cad([this](){ ctrl_alt_del_thread(); });
 		cad.wait();
 	}
 
 	return true;
 }
 
-void
-MSWindowsKeyState::ctrlAltDelThread(void*)
+void MSWindowsKeyState::ctrl_alt_del_thread()
 {
 	// get the Winlogon desktop at whatever privilege we can
 	HDESK desk = OpenDesktop("Winlogon", 0, FALSE, MAXIMUM_ALLOWED);
@@ -959,7 +940,7 @@ MSWindowsKeyState::getKeyMap(barrier::KeyMap& keyMap)
 			// deal with certain virtual keys specially
 			switch (vk) {
 			case VK_SHIFT:
-				// this is important for sending the correct modifier to the 
+				// this is important for sending the correct modifier to the
 				// client, a patch from bug #242 (right shift broken for ms
 				// remote desktop) removed this to just use left shift, which
 				// caused bug #2799 (right shift broken for osx).
@@ -1176,7 +1157,7 @@ MSWindowsKeyState::getKeyMap(barrier::KeyMap& keyMap)
 								}
 							}
 						}
-						
+
 						// save each key.  the map will automatically discard
 						// duplicates, like an unshift and shifted version of
 						// a key that's insensitive to shift.
@@ -1347,7 +1328,7 @@ MSWindowsKeyState::getKeyID(UINT virtualKey, KeyButton button) const
 	if ((LOWORD(m_keyLayout) & 0xffffu) == 0x0412u) {	// 0x0412 : Korean Locale ID
 		if (virtualKey == VK_HANGUL || virtualKey == VK_HANJA) {
 			// If shift-space is used to change the input mode,
-			// the extented bit is not set. So add it to get right key id.
+			// the extended bit is not set. So add it to get right key id.
 			button |= 0x100u;
 		}
 	}
@@ -1374,7 +1355,7 @@ MSWindowsKeyState::getIDForKey(barrier::KeyMap::KeyItem& item,
 		virtualKey, button, keyState, unicode,
 		sizeof(unicode) / sizeof(unicode[0]), 0, hkl);
 	KeyID id = static_cast<KeyID>(unicode[0]);
-	
+
 	switch (n) {
 	case -1:
 		return barrier::KeyMap::getDeadKey(id);

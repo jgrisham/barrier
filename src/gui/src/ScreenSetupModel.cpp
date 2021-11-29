@@ -2,11 +2,11 @@
  * barrier -- mouse and keyboard sharing utility
  * Copyright (C) 2012-2016 Symless Ltd.
  * Copyright (C) 2008 Volker Lanz (vl@fidra.de)
- * 
+ *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * found in the file LICENSE that should have accompanied this file.
- * 
+ *
  * This package is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -24,7 +24,7 @@
 
 const QString ScreenSetupModel::m_MimeType = "application/x-qbarrier-screen";
 
-ScreenSetupModel::ScreenSetupModel(ScreenList& screens, int numColumns, int numRows) :
+ScreenSetupModel::ScreenSetupModel(std::vector<Screen>& screens, int numColumns, int numRows) :
     QAbstractTableModel(NULL),
     m_Screens(screens),
     m_NumColumns(numColumns),
@@ -71,7 +71,7 @@ Qt::ItemFlags ScreenSetupModel::flags(const QModelIndex& index) const
     if (!screen(index).isNull())
         return Qt::ItemIsEnabled | Qt::ItemIsDragEnabled | Qt::ItemIsSelectable | Qt::ItemIsDropEnabled;
 
-    return Qt::ItemIsDropEnabled;
+    return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsDropEnabled;
 }
 
 Qt::DropActions ScreenSetupModel::supportedDropActions() const
@@ -91,9 +91,10 @@ QMimeData* ScreenSetupModel::mimeData(const QModelIndexList& indexes) const
 
     QDataStream stream(&encodedData, QIODevice::WriteOnly);
 
-    foreach (const QModelIndex& index, indexes)
+    for (const QModelIndex& index : indexes) {
         if (index.isValid())
             stream << index.column() << index.row() << screen(index);
+    }
 
     pMimeData->setData(m_MimeType, encodedData);
 
@@ -109,7 +110,7 @@ bool ScreenSetupModel::dropMimeData(const QMimeData* data, Qt::DropAction action
         return false;
 
      if (!parent.isValid() || row != -1 || column != -1)
-         return false;
+        return false;
 
     QByteArray encodedData = data->data(m_MimeType);
     QDataStream stream(&encodedData, QIODevice::ReadOnly);
@@ -140,4 +141,3 @@ bool ScreenSetupModel::dropMimeData(const QMimeData* data, Qt::DropAction action
 
     return true;
 }
-

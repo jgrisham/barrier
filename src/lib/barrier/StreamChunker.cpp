@@ -1,11 +1,11 @@
 /*
  * barrier -- mouse and keyboard sharing utility
  * Copyright (C) 2013-2016 Symless Ltd.
- * 
+ *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * found in the file LICENSE that should have accompanied this file.
- * 
+ *
  * This package is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -42,14 +42,13 @@ bool StreamChunker::s_interruptFile = false;
 Mutex* StreamChunker::s_interruptMutex = NULL;
 
 void
-StreamChunker::sendFile(
-                char* filename,
+StreamChunker::sendFile(const char* filename,
                 IEventQueue* events,
                 void* eventTarget)
 {
     s_isChunkingFile = true;
-    
-    std::fstream file(static_cast<char*>(filename), std::ios::in | std::ios::binary);
+
+    std::fstream file(filename, std::ios::in | std::ios::binary);
 
     if (!file.is_open()) {
         throw runtime_error("failed to open file");
@@ -76,9 +75,9 @@ StreamChunker::sendFile(
             LOG((CLOG_DEBUG "file transmission interrupted"));
             break;
         }
-        
+
         events->addEvent(Event(events->forFile().keepAlive(), eventTarget));
-        
+
         // make sure we don't read too much from the mock data.
         if (sentLength + chunkSize > size) {
             chunkSize = size - sentLength;
@@ -106,7 +105,7 @@ StreamChunker::sendFile(
     events->addEvent(Event(events->forFile().fileChunkSending(), eventTarget, end));
 
     file.close();
-    
+
     s_isChunkingFile = false;
 }
 
@@ -122,16 +121,16 @@ StreamChunker::sendClipboard(
     // send first message (data size)
     String dataSize = barrier::string::sizeTypeToString(size);
     ClipboardChunk* sizeMessage = ClipboardChunk::start(id, sequence, dataSize);
-    
+
     events->addEvent(Event(events->forClipboard().clipboardSending(), eventTarget, sizeMessage));
 
     // send clipboard chunk with a fixed size
     size_t sentLength = 0;
     size_t chunkSize = g_chunkSize;
-    
+
     while (true) {
         events->addEvent(Event(events->forFile().keepAlive(), eventTarget));
-        
+
         // make sure we don't read too much from the mock data.
         if (sentLength + chunkSize > size) {
             chunkSize = size - sentLength;
@@ -139,7 +138,7 @@ StreamChunker::sendClipboard(
 
         String chunk(data.substr(sentLength, chunkSize).c_str(), chunkSize);
         ClipboardChunk* dataChunk = ClipboardChunk::data(id, sequence, chunk);
-        
+
         events->addEvent(Event(events->forClipboard().clipboardSending(), eventTarget, dataChunk));
 
         sentLength += chunkSize;
@@ -152,7 +151,7 @@ StreamChunker::sendClipboard(
     ClipboardChunk* end = ClipboardChunk::end(id, sequence);
 
     events->addEvent(Event(events->forClipboard().clipboardSending(), eventTarget, end));
-    
+
     LOG((CLOG_DEBUG "sent clipboard size=%d", sentLength));
 }
 

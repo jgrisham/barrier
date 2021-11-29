@@ -2,11 +2,11 @@
  * barrier -- mouse and keyboard sharing utility
  * Copyright (C) 2012-2016 Symless Ltd.
  * Copyright (C) 2002 Chris Schoeneman
- * 
+ *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * found in the file LICENSE that should have accompanied this file.
- * 
+ *
  * This package is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -17,6 +17,7 @@
  */
 
 #include "barrier/key_types.h"
+#include <cstddef>
 
 const KeyNameMapEntry kKeyNameMap[] = {
     { "AltGr",            kKeyAltGr },
@@ -194,6 +195,12 @@ const KeyNameMapEntry kKeyNameMap[] = {
     { "Bar",            0x007c },
     { "BraceR",            0x007d },
     { "Tilde",            0x007e },
+    { "Copy",           kKeyCopy },
+    { "Cut",            kKeyCut },
+    { "Open",           kKeyOpen },
+    { "Paste",          kKeyPaste },
+    { "Props",          kKeyProps },
+    { "Front",          kKeyFront },
     { NULL, 0 },
 };
 

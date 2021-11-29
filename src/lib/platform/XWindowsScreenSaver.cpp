@@ -2,11 +2,11 @@
  * barrier -- mouse and keyboard sharing utility
  * Copyright (C) 2012-2016 Symless Ltd.
  * Copyright (C) 2002 Chris Schoeneman
- * 
+ *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * found in the file LICENSE that should have accompanied this file.
- * 
+ *
  * This package is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -26,31 +26,11 @@
 #include "base/TMethodEventJob.h"
 
 #include <X11/Xatom.h>
-#if HAVE_X11_EXTENSIONS_XTEST_H
-#    include <X11/extensions/XTest.h>
-#else
-#    error The XTest extension is required to build barrier
-#endif
+#include <X11/extensions/XTest.h>
 #if HAVE_X11_EXTENSIONS_DPMS_H
 extern "C" {
 #    include <X11/Xmd.h>
 #    include <X11/extensions/dpms.h>
-#    if !HAVE_DPMS_PROTOTYPES
-#        undef DPMSModeOn
-#        undef DPMSModeStandby
-#        undef DPMSModeSuspend
-#        undef DPMSModeOff
-#        define DPMSModeOn        0
-#        define DPMSModeStandby    1
-#        define DPMSModeSuspend    2
-#        define DPMSModeOff        3
-extern Bool DPMSQueryExtension(Display *, int *, int *);
-extern Bool DPMSCapable(Display *);
-extern Status DPMSEnable(Display *);
-extern Status DPMSDisable(Display *);
-extern Status DPMSForceLevel(Display *, CARD16);
-extern Status DPMSInfo(Display *, CARD16 *, BOOL *);
-#    endif
 }
 #endif
 
@@ -490,7 +470,7 @@ XWindowsScreenSaver::addWatchXScreenSaver(Window window)
     }
 
     // if successful and window uses override_redirect (like xscreensaver
-    // does) then watch it for property changes.  
+    // does) then watch it for property changes.
     if (!error && attr.override_redirect == True) {
         error = false;
         {

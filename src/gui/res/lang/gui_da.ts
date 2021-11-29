@@ -648,13 +648,18 @@ To automatically trust this fingerprint for future connections, click Yes. To re
     <name>QObject</name>
     <message>
         <location filename="src/MainWindow.cpp" line="60"/>
-        <source>Barrier Configurations (*.sgc);;All files (*.*)</source>
-        <translation type="finished">Barrier-konfigurationer (*.sgc);;Alle filer (*.*)</translation>
+        <source>All files (*.*)</source>
+        <translation type="finished">Alle filer (*.*)</translation>
+    </message>
+    <message>
+        <location filename="src/MainWindow.cpp" line="60"/>
+        <source>Barrier Configurations (*.sgc)</source>
+        <translation type="finished">Barrier-konfigurationer (*.sgc)</translation>
     </message>
     <message>
         <location filename="src/MainWindow.cpp" line="67"/>
-        <source>Barrier Configurations (*.conf);;All files (*.*)</source>
-        <translation type="finished">Barrier-konfigurationer (*.conf);;Alle filer (*.*)</translation>
+        <source>Barrier Configurations (*.conf)</source>
+        <translation type="finished">Barrier-konfigurationer (*.conf)</translation>
     </message>
     <message>
         <location filename="src/main.cpp" line="119"/>
@@ -1329,7 +1334,7 @@ p, li { white-space: pre-wrap; }
 Server response:
 
 %1</source>
-        <translation type="finished">Fejl i login, en fejl opstod. 
+        <translation type="finished">Fejl i login, en fejl opstod.
 Server svar:
 %1</translation>
     </message>

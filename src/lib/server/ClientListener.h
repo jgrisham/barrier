@@ -2,11 +2,11 @@
  * barrier -- mouse and keyboard sharing utility
  * Copyright (C) 2012-2016 Symless Ltd.
  * Copyright (C) 2004 Chris Schoeneman
- * 
+ *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * found in the file LICENSE that should have accompanied this file.
- * 
+ *
  * This package is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -23,6 +23,7 @@
 #include "base/Event.h"
 #include "common/stddeque.h"
 #include "common/stdset.h"
+#include "net/ConnectionSecurityLevel.h"
 
 class ClientProxy;
 class ClientProxyUnknown;
@@ -36,10 +37,8 @@ class IDataSocket;
 class ClientListener {
 public:
     // The factories are adopted.
-    ClientListener(const NetworkAddress&,
-                            ISocketFactory*,
-                            IEventQueue* events,
-                            bool enableCrypto);
+    ClientListener(const NetworkAddress&, ISocketFactory*, IEventQueue* events,
+                   ConnectionSecurityLevel security_level);
     ~ClientListener();
 
     //! @name manipulators
@@ -86,6 +85,6 @@ private:
     WaitingClients        m_waitingClients;
     Server*                m_server;
     IEventQueue*        m_events;
-    bool                m_useSecureNetwork;
+    ConnectionSecurityLevel security_level_;
     ClientSockets      m_clientSockets;
 };

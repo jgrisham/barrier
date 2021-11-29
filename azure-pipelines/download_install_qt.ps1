@@ -6,8 +6,7 @@ $qt_version = '5.13.0'
 New-Item -Force -ItemType Directory -Path ".\deps\"
 
 Write-Output 'Downloading QLI Installer'
-$Wc = New-Object System.Net.WebClient
-$Wc.DownloadFile("https://github.com/nelsonjchen/qli-installer/archive/v$qli_install_version.zip", '.\deps\qli-installer.zip') ;
+Invoke-WebRequest "https://github.com/nelsonjchen/qli-installer/archive/v$qli_install_version.zip" -OutFile '.\deps\qli-installer.zip' ;
 Write-Output 'Downloaded QLI Installer'
 
 Write-Output 'Extracting QLI Installer'
@@ -21,6 +20,6 @@ Write-Output 'Installed QLI Installer Dependencies'
 
 Write-Output 'Starting QT Installer'
 $Env:QLI_OUT_DIR = ".\deps\Qt\Qt$qt_version"
-$Env:QLI_BASE_URL = "http://mirrors.ocf.berkeley.edu/qt/online/qtsdkrepository/"
+$Env:QLI_BASE_URL = "https://download.qt.io/online/qtsdkrepository/"
 python .\deps\qli-installer\qli-installer.py $qt_version windows desktop win64_msvc2017_64
 Write-Output 'Installed QT Installer'

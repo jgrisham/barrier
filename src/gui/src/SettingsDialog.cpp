@@ -2,11 +2,11 @@
  * barrier -- mouse and keyboard sharing utility
  * Copyright (C) 2012-2016 Symless Ltd.
  * Copyright (C) 2008 Volker Lanz (vl@fidra.de)
- * 
+ *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * found in the file LICENSE that should have accompanied this file.
- * 
+ *
  * This package is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -48,8 +48,10 @@ SettingsDialog::SettingsDialog(QWidget* parent, AppConfig& config) :
     m_pLineEditLogFilename->setText(appConfig().logFilename());
     setIndexFromItemData(m_pComboLanguage, appConfig().language());
     m_pCheckBoxAutoHide->setChecked(appConfig().getAutoHide());
+    m_pCheckBoxAutoStart->setChecked(appConfig().getAutoStart());
     m_pCheckBoxMinimizeToTray->setChecked(appConfig().getMinimizeToTray());
     m_pCheckBoxEnableCrypto->setChecked(m_appConfig.getCryptoEnabled());
+    checkbox_require_client_certificate->setChecked(m_appConfig.getRequireClientCertificate());
 
 #if defined(Q_OS_WIN)
     m_pComboElevate->setCurrentIndex(static_cast<int>(appConfig().elevateMode()));
@@ -66,12 +68,14 @@ void SettingsDialog::accept()
     m_appConfig.setPort(m_pSpinBoxPort->value());
     m_appConfig.setNetworkInterface(m_pLineEditInterface->text());
     m_appConfig.setCryptoEnabled(m_pCheckBoxEnableCrypto->isChecked());
+    m_appConfig.setRequireClientCertificate(checkbox_require_client_certificate->isChecked());
     m_appConfig.setLogLevel(m_pComboLogLevel->currentIndex());
     m_appConfig.setLogToFile(m_pCheckBoxLogToFile->isChecked());
     m_appConfig.setLogFilename(m_pLineEditLogFilename->text());
     m_appConfig.setLanguage(m_pComboLanguage->itemData(m_pComboLanguage->currentIndex()).toString());
     m_appConfig.setElevateMode(static_cast<ElevateMode>(m_pComboElevate->currentIndex()));
     m_appConfig.setAutoHide(m_pCheckBoxAutoHide->isChecked());
+    m_appConfig.setAutoStart(m_pCheckBoxAutoStart->isChecked());
     m_appConfig.setMinimizeToTray(m_pCheckBoxMinimizeToTray->isChecked());
     m_appConfig.saveSettings();
     QDialog::accept();

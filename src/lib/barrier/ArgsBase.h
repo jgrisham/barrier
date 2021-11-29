@@ -2,11 +2,11 @@
  * barrier -- mouse and keyboard sharing utility
  * Copyright (C) 2012-2016 Symless Ltd.
  * Copyright (C) 2012 Nick Bolton
- * 
+ *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * found in the file LICENSE that should have accompanied this file.
- * 
+ *
  * This package is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -19,6 +19,7 @@
 #pragma once
 
 #include "base/String.h"
+#include "io/filesystem.h"
 
 class ArgsBase {
 public:
@@ -38,6 +39,7 @@ public:
     bool                m_disableTray;
     bool                m_enableIpc;
     bool                m_enableDragDrop;
+    String              m_dropTarget;
 #if SYSAPI_WIN32
     bool                m_debugServiceWait;
     bool                m_pauseOnExit;
@@ -49,6 +51,6 @@ public:
     bool                m_shouldExit;
     String                m_barrierAddress;
     bool                m_enableCrypto;
-    String                m_profileDirectory;
-    String                m_pluginDirectory;
+    barrier::fs::path m_profileDirectory;
+    barrier::fs::path m_pluginDirectory;
 };

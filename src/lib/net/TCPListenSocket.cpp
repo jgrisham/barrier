@@ -2,11 +2,11 @@
  * barrier -- mouse and keyboard sharing utility
  * Copyright (C) 2012-2016 Symless Ltd.
  * Copyright (C) 2002 Chris Schoeneman
- * 
+ *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * found in the file LICENSE that should have accompanied this file.
- * 
+ *
  * This package is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -70,8 +70,10 @@ TCPListenSocket::bind(const NetworkAddress& addr)
         ARCH->bindSocket(m_socket, addr.getAddress());
         ARCH->listenOnSocket(m_socket);
 
-        auto new_job = std::make_unique<TSocketMultiplexerMethodJob<TCPListenSocket>>(
-                this, &TCPListenSocket::serviceListening, m_socket, true, false);
+        auto new_job = std::make_unique<TSocketMultiplexerMethodJob>(
+                    [this](auto j, auto r, auto w, auto e)
+                    { return serviceListening(j, r, w, e); },
+                    m_socket, true, false);
 
         m_socketMultiplexer->addSocket(this, std::move(new_job));
     }
@@ -136,8 +138,10 @@ TCPListenSocket::accept()
 void
 TCPListenSocket::setListeningJob()
 {
-    auto new_job = std::make_unique<TSocketMultiplexerMethodJob<TCPListenSocket>>(
-        this, &TCPListenSocket::serviceListening, m_socket, true, false);
+    auto new_job = std::make_unique<TSocketMultiplexerMethodJob>(
+                [this](auto j, auto r, auto w, auto e)
+                { return serviceListening(j, r, w, e); },
+                m_socket, true, false);
     m_socketMultiplexer->addSocket(this, std::move(new_job));
 }
 

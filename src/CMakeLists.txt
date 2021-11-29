@@ -1,11 +1,11 @@
 # barrier -- mouse and keyboard sharing utility
 # Copyright (C) 2012-2016 Symless Ltd.
 # Copyright (C) 2011 Nick Bolton
-# 
+#
 # This package is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # found in the file LICENSE that should have accompanied this file.
-# 
+#
 # This package is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -20,8 +20,11 @@ include_directories (${CMAKE_CURRENT_BINARY_DIR}/lib)
 add_subdirectory(lib)
 add_subdirectory(cmd)
 
+include(../cmake/gtest.cmake)
+
 if (BARRIER_BUILD_TESTS)
-    add_subdirectory(test)
+    add_subdirectory(test/integtests)
+    add_subdirectory(test/unittests)
 endif()
 
 if (BARRIER_BUILD_GUI)

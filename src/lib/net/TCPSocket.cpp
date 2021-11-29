@@ -2,11 +2,11 @@
  * barrier -- mouse and keyboard sharing utility
  * Copyright (C) 2012-2016 Symless Ltd.
  * Copyright (C) 2002 Chris Schoeneman
- * 
+ *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * found in the file LICENSE that should have accompanied this file.
- * 
+ *
  * This package is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -33,9 +33,7 @@
 #include <cstdlib>
 #include <memory>
 
-//
-// TCPSocket
-//
+static const std::size_t MAX_INPUT_BUFFER_SIZE = 1024 * 1024;
 
 TCPSocket::TCPSocket(IEventQueue* events, SocketMultiplexer* socketMultiplexer, IArchNetwork::EAddressFamily family) :
     IDataSocket(events),
@@ -335,19 +333,23 @@ TCPSocket::doRead()
     UInt8 buffer[4096];
     memset(buffer, 0, sizeof(buffer));
     size_t bytesRead = 0;
-    
+
     bytesRead = ARCH->readSocket(m_socket, buffer, sizeof(buffer));
-    
+
     if (bytesRead > 0) {
         bool wasEmpty = (m_inputBuffer.getSize() == 0);
-        
+
         // slurp up as much as possible
         do {
             m_inputBuffer.write(buffer, (UInt32)bytesRead);
 
+            if (m_inputBuffer.getSize() > MAX_INPUT_BUFFER_SIZE) {
+                break;
+            }
+
             bytesRead = ARCH->readSocket(m_socket, buffer, sizeof(buffer));
         } while (bytesRead > 0);
-        
+
         // send input ready if input buffer was empty
         if (wasEmpty) {
             sendEvent(m_events->forIStream().inputReady());
@@ -365,7 +367,7 @@ TCPSocket::doRead()
         m_readable = false;
         return kNew;
     }
-    
+
     return kRetry;
 }
 
@@ -384,7 +386,7 @@ TCPSocket::doWrite()
         discardWrittenData(bytesWrote);
         return kNew;
     }
-    
+
     return kRetry;
 }
 
@@ -424,18 +426,20 @@ std::unique_ptr<ISocketMultiplexerJob> TCPSocket::newJob()
         if (!(m_readable || m_writable)) {
             return {};
         }
-        return std::make_unique<TSocketMultiplexerMethodJob<TCPSocket>>(
-                                this, &TCPSocket::serviceConnecting,
-                                m_socket, m_readable, m_writable);
+        return std::make_unique<TSocketMultiplexerMethodJob>(
+                    [this](auto j, auto r, auto w, auto e)
+                    { return serviceConnecting(j, r, w, e); },
+                    m_socket, m_readable, m_writable);
     }
     else {
-        if (!(m_readable || (m_writable && (m_outputBuffer.getSize() > 0)))) {
+        auto writable = m_writable && (m_outputBuffer.getSize() > 0);
+        if (!(m_readable || writable)) {
             return {};
         }
-        return std::make_unique<TSocketMultiplexerMethodJob<TCPSocket>>(
-                                this, &TCPSocket::serviceConnected,
-                                m_socket, m_readable,
-                                m_writable && (m_outputBuffer.getSize() > 0));
+        return std::make_unique<TSocketMultiplexerMethodJob>(
+                    [this](auto j, auto r, auto w, auto e)
+                    { return serviceConnected(j, r, w, e); },
+                    m_socket, m_readable, writable);
     }
 }
 

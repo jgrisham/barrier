@@ -2,11 +2,11 @@
  * barrier -- mouse and keyboard sharing utility
  * Copyright (C) 2012-2016 Symless Ltd.
  * Copyright (C) 2002 Chris Schoeneman
- * 
+ *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * found in the file LICENSE that should have accompanied this file.
- * 
+ *
  * This package is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -1748,10 +1748,10 @@ std::ostream&
 operator<<(std::ostream& s, const Config& config)
 {
 	// screens section
-	s << "section: screens" << std::endl;
+    s << "section: screens\n";
 	for (Config::const_iterator screen = config.begin();
 								screen != config.end(); ++screen) {
-		s << "\t" << screen->c_str() << ":" << std::endl;
+        s << "\t" << screen->c_str() << ":\n";
 		const Config::ScreenOptions* options = config.getOptions(*screen);
 		if (options != NULL && options->size() > 0) {
 			for (Config::ScreenOptions::const_iterator
@@ -1760,31 +1760,31 @@ operator<<(std::ostream& s, const Config& config)
 				const char* name = Config::getOptionName(option->first);
                 std::string value = Config::getOptionValue(option->first, option->second);
 				if (name != NULL && !value.empty()) {
-					s << "\t\t" << name << " = " << value << std::endl;
+                    s << "\t\t" << name << " = " << value << "\n";
 				}
 			}
 		}
 	}
-	s << "end" << std::endl;
+    s << "end\n";
 
 	// links section
     std::string neighbor;
-	s << "section: links" << std::endl;
+    s << "section: links\n";
 	for (Config::const_iterator screen = config.begin();
 								screen != config.end(); ++screen) {
-		s << "\t" << screen->c_str() << ":" << std::endl;
+        s << "\t" << screen->c_str() << ":\n";
 
 		for (Config::link_const_iterator
 				link = config.beginNeighbor(*screen),
-				nend = config.endNeighbor(*screen); link != nend; ++link) {			
+				nend = config.endNeighbor(*screen); link != nend; ++link) {
 			s << "\t\t" << Config::dirName(link->first.getSide()) <<
 				Config::formatInterval(link->first.getInterval()) <<
 				" = " << link->second.getName().c_str() <<
 				Config::formatInterval(link->second.getInterval()) <<
-				std::endl;
+                "\n";
 		}
 	}
-	s << "end" << std::endl;
+    s << "end\n";
 
 	// aliases section (if there are any)
 	if (config.m_map.size() != config.m_nameToCanonicalName.size()) {
@@ -1802,20 +1802,20 @@ operator<<(std::ostream& s, const Config& config)
 
 		// dump it
         std::string screen;
-		s << "section: aliases" << std::endl;
+        s << "section: aliases\n";
 		for (CMNameMap::const_iterator index = aliases.begin();
 								index != aliases.end(); ++index) {
 			if (index->first != screen) {
 				screen = index->first;
-				s << "\t" << screen.c_str() << ":" << std::endl;
+                s << "\t" << screen.c_str() << ":\n";
 			}
-			s << "\t\t" << index->second.c_str() << std::endl;
+            s << "\t\t" << index->second.c_str() << "\n";
 		}
-		s << "end" << std::endl;
+        s << "end\n";
 	}
 
 	// options section
-	s << "section: options" << std::endl;
+    s << "section: options\n";
 	const Config::ScreenOptions* options = config.getOptions("");
 	if (options != NULL && options->size() > 0) {
 		for (Config::ScreenOptions::const_iterator
@@ -1824,16 +1824,16 @@ operator<<(std::ostream& s, const Config& config)
 			const char* name = Config::getOptionName(option->first);
             std::string value = Config::getOptionValue(option->first, option->second);
 			if (name != NULL && !value.empty()) {
-				s << "\t" << name << " = " << value << std::endl;
+                s << "\t" << name << " = " << value << "\n";
 			}
 		}
 	}
 	if (config.m_barrierAddress.isValid()) {
 		s << "\taddress = " <<
-			config.m_barrierAddress.getHostname().c_str() << std::endl;
+            config.m_barrierAddress.getHostname().c_str() << "\n";
 	}
 	s << config.m_inputFilter.format("\t");
-	s << "end" << std::endl;
+    s << "end\n";
 
 	return s;
 }

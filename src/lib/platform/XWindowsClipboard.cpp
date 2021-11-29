@@ -2,11 +2,11 @@
  * barrier -- mouse and keyboard sharing utility
  * Copyright (C) 2012-2016 Symless Ltd.
  * Copyright (C) 2002 Chris Schoeneman
- * 
+ *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * found in the file LICENSE that should have accompanied this file.
- * 
+ *
  * This package is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -84,9 +84,13 @@ XWindowsClipboard::XWindowsClipboard(IXWindowsImpl* impl, Display* display,
     // add converters, most desired first
     m_converters.push_back(new XWindowsClipboardHTMLConverter(m_display,
                                 "text/html"));
+    m_converters.push_back(new XWindowsClipboardHTMLConverter(m_display,
+                                "application/x-moz-nativehtml"));
     m_converters.push_back(new XWindowsClipboardBMPConverter(m_display));
     m_converters.push_back(new XWindowsClipboardUTF8Converter(m_display,
                                 "text/plain;charset=UTF-8"));
+    m_converters.push_back(new XWindowsClipboardUTF8Converter(m_display,
+                                "text/plain;charset=utf-8"));
     m_converters.push_back(new XWindowsClipboardUTF8Converter(m_display,
                                 "UTF8_STRING"));
     m_converters.push_back(new XWindowsClipboardUCS2Converter(m_display,

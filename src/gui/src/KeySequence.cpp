@@ -2,11 +2,11 @@
  * barrier -- mouse and keyboard sharing utility
  * Copyright (C) 2012-2016 Symless Ltd.
  * Copyright (C) 2008 Volker Lanz (vl@fidra.de)
- * 
+ *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * found in the file LICENSE that should have accompanied this file.
- * 
+ *
  * This package is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -55,6 +55,8 @@ static const struct
     { Qt::Key_Help,         "Help" },
     { Qt::Key_Enter,        "KP_Enter" },
     { Qt::Key_Clear,        "Clear" },
+    { Qt::Key_Comma,        "Comma" },
+    { Qt::Key_Semicolon,    "Semicolon" },
 
     { Qt::Key_Back,         "WWWBack" },
     { Qt::Key_Forward,      "WWWForward" },
@@ -152,12 +154,12 @@ bool KeySequence::appendKey(int key, int modifiers)
 
 void KeySequence::loadSettings(QSettings& settings)
 {
-    sequence().clear();
+    m_Sequence.clear();
     int num = settings.beginReadArray("keys");
     for (int i = 0; i < num; i++)
     {
         settings.setArrayIndex(i);
-        sequence().append(settings.value("key", 0).toInt());
+        m_Sequence.append(settings.value("key", 0).toInt());
     }
     settings.endArray();
 
@@ -168,10 +170,10 @@ void KeySequence::loadSettings(QSettings& settings)
 void KeySequence::saveSettings(QSettings& settings) const
 {
     settings.beginWriteArray("keys");
-    for (int i = 0; i < sequence().size(); i++)
+    for (int i = 0; i < m_Sequence.size(); i++)
     {
         settings.setArrayIndex(i);
-        settings.setValue("key", sequence()[i]);
+        settings.setValue("key", m_Sequence[i]);
     }
     settings.endArray();
 }
@@ -211,22 +213,21 @@ QString KeySequence::keyToString(int key)
     // treat key pad like normal keys (FIXME: we should have another lookup table for keypad keys instead)
      key &= ~Qt::KeypadModifier;
 
+    // a special key?
+    int i = 0;
+    while (keyname[i].name) {
+        if (key == keyname[i].key)
+            return QString::fromUtf8(keyname[i].name);
+        i++;
+    }
+
     // a printable 7 bit character?
-     if (key < 0x80 && key != Qt::Key_Space)
+     if (key < 0x80)
          return QChar(key & 0x7f).toLower();
 
     // a function key?
     if (key >= Qt::Key_F1 && key <= Qt::Key_F35)
         return QString::fromUtf8("F%1").arg(key - Qt::Key_F1 + 1);
-
-    // a special key?
-    int i=0;
-    while (keyname[i].name)
-    {
-        if (key == keyname[i].key)
-            return QString::fromUtf8(keyname[i].name);
-        i++;
-    }
 
     // representable in ucs2?
     if (key < 0x10000)

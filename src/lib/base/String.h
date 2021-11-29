@@ -2,11 +2,11 @@
  * barrier -- mouse and keyboard sharing utility
  * Copyright (C) 2012-2016 Symless Ltd.
  * Copyright (C) 2002 Chris Schoeneman
- * 
+ *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * found in the file LICENSE that should have accompanied this file.
- * 
+ *
  * This package is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -75,7 +75,10 @@ std::string removeFileExt(std::string filename);
 /*!
 Convert each character in \c subject into hexdecimal form with \c width
 */
-void toHex(std::string& subject, int width, const char fill = '0');
+std::string to_hex(const std::vector<std::uint8_t>& subject, int width, const char fill = '0');
+
+/// Convert binary data from hexadecimal
+std::vector<std::uint8_t> from_hex(const std::string& data);
 
 //! Convert to all uppercase
 /*!

@@ -2,11 +2,11 @@
  * barrier -- mouse and keyboard sharing utility
  * Copyright (C) 2012-2016 Symless Ltd.
  * Copyright (C) 2004 Chris Schoeneman
- * 
+ *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * found in the file LICENSE that should have accompanied this file.
- * 
+ *
  * This package is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -56,10 +56,17 @@ XWindowsClipboardHTMLConverter::getDataSize() const
 
 std::string XWindowsClipboardHTMLConverter::fromIClipboard(const std::string& data) const
 {
-    return Unicode::UTF8ToUTF16(data);
+    return data;
 }
 
 std::string XWindowsClipboardHTMLConverter::toIClipboard(const std::string& data) const
 {
-    return Unicode::UTF16ToUTF8(data);
+    // Older Firefox [1] and possibly other applications use UTF-16 for text/html - handle both
+    // [1] https://bugzilla.mozilla.org/show_bug.cgi?id=1497580
+    if (Unicode::isUTF8(data)) {
+        return data;
+    } else {
+        return Unicode::UTF16ToUTF8(data);
+    }
+    return data;
 }

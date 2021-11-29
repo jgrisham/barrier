@@ -2,11 +2,11 @@
  * barrier -- mouse and keyboard sharing utility
  * Copyright (C) 2012-2016 Symless Ltd.
  * Copyright (C) 2002 Chris Schoeneman
- * 
+ *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * found in the file LICENSE that should have accompanied this file.
- * 
+ *
  * This package is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -172,7 +172,7 @@ static const KeyID		kKeyKP_Separator= 0xEFAC;	/* separator, often comma */
 static const KeyID		kKeyKP_Subtract	= 0xEFAD;
 static const KeyID		kKeyKP_Decimal	= 0xEFAE;
 static const KeyID		kKeyKP_Divide	= 0xEFAF;
-static const KeyID		kKeyKP_0		= 0xEFB0; 
+static const KeyID		kKeyKP_0		= 0xEFB0;
 static const KeyID		kKeyKP_1		= 0xEFB1;
 static const KeyID		kKeyKP_2		= 0xEFB2;
 static const KeyID		kKeyKP_3		= 0xEFB3;
@@ -235,6 +235,13 @@ static const KeyID		kKeySuper_L		= 0xEFEB;	/* Left super */
 static const KeyID		kKeySuper_R		= 0xEFEC;	/* Right super */
 static const KeyID		kKeyHyper_L		= 0xEFED;	/* Left hyper */
 static const KeyID		kKeyHyper_R		= 0xEFEE;	/* Right hyper */
+
+static const KeyID		kKeyCopy		= 0x1008EF57;
+static const KeyID		kKeyCut			= 0x1008EF58;
+static const KeyID		kKeyOpen		= 0x1008EF6b;
+static const KeyID		kKeyPaste		= 0x1008EF6d;
+static const KeyID		kKeyProps		= 0x1005EF70;
+static const KeyID		kKeyFront		= 0x1005EF71;
 
 // multi-key character composition
 static const KeyID		kKeyCompose			= 0xEF20;

@@ -2,11 +2,11 @@
  * barrier -- mouse and keyboard sharing utility
  * Copyright (C) 2012-2016 Symless Ltd.
  * Copyright (C) 2002 Chris Schoeneman
- * 
+ *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * found in the file LICENSE that should have accompanied this file.
- * 
+ *
  * This package is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -22,11 +22,7 @@
 #include "common/stdmap.h"
 #include "common/stdvector.h"
 
-#if X_DISPLAY_MISSING
-#    error X11 is required to build barrier
-#else
-#    include <X11/Xlib.h>
-#endif
+#include <X11/Xlib.h>
 
 #include <string>
 
@@ -123,7 +119,7 @@ public:
     This class sets an X error handler in the c'tor and restores the
     previous error handler in the d'tor.  A lock should only be
     installed while the display is locked by the thread.
-    
+
     ErrorLock() ignores errors
     ErrorLock(bool* flag) sets *flag to true if any error occurs
     */

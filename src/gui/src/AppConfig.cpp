@@ -60,6 +60,7 @@ AppConfig::AppConfig(QSettings* settings) :
     m_AutoConfigPrompted(false),
     m_CryptoEnabled(false),
     m_AutoHide(false),
+    m_AutoStart(false),
     m_MinimizeToTray(false)
 {
     Q_ASSERT(m_pSettings);
@@ -157,7 +158,10 @@ void AppConfig::loadSettings()
     m_ElevateMode = static_cast<ElevateMode>(elevateMode.toInt());
     m_AutoConfigPrompted = settings().value("autoConfigPrompted", false).toBool();
     m_CryptoEnabled = settings().value("cryptoEnabled", true).toBool();
+    // TODO: set default value of requireClientCertificate to true on Barrier 2.5.0
+    m_RequireClientCertificate = settings().value("requireClientCertificate", false).toBool();
     m_AutoHide = settings().value("autoHide", false).toBool();
+    m_AutoStart = settings().value("autoStart", false).toBool();
     m_MinimizeToTray = settings().value("minimizeToTray", false).toBool();
 }
 
@@ -179,7 +183,9 @@ void AppConfig::saveSettings()
     settings().setValue("elevateModeEnum", static_cast<int>(m_ElevateMode));
     settings().setValue("autoConfigPrompted", m_AutoConfigPrompted);
     settings().setValue("cryptoEnabled", m_CryptoEnabled);
+    settings().setValue("requireClientCertificate", m_RequireClientCertificate);
     settings().setValue("autoHide", m_AutoHide);
+    settings().setValue("autoStart", m_AutoStart);
     settings().setValue("minimizeToTray", m_MinimizeToTray);
     settings().sync();
 }
@@ -208,7 +214,7 @@ void AppConfig::setElevateMode(ElevateMode em) { m_ElevateMode = em; }
 
 void AppConfig::setAutoConfig(bool autoConfig) { m_AutoConfig = autoConfig; }
 
-bool AppConfig::autoConfigPrompted()  { return m_AutoConfigPrompted; }
+bool AppConfig::autoConfigPrompted() { return m_AutoConfigPrompted; }
 
 void AppConfig::setAutoConfigPrompted(bool prompted) { m_AutoConfigPrompted = prompted; }
 
@@ -222,9 +228,17 @@ void AppConfig::setCryptoEnabled(bool e) { m_CryptoEnabled = e; }
 
 bool AppConfig::getCryptoEnabled() const { return m_CryptoEnabled; }
 
+void AppConfig::setRequireClientCertificate(bool e) { m_RequireClientCertificate = e; }
+
+bool AppConfig::getRequireClientCertificate() const { return m_RequireClientCertificate; }
+
 void AppConfig::setAutoHide(bool b) { m_AutoHide = b; }
 
 bool AppConfig::getAutoHide() { return m_AutoHide; }
+
+void AppConfig::setAutoStart(bool b) { m_AutoStart = b; }
+
+bool AppConfig::getAutoStart() { return m_AutoStart; }
 
 void AppConfig::setMinimizeToTray(bool b) { m_MinimizeToTray = b; }
 

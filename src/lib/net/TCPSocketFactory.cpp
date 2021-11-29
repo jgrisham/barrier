@@ -2,11 +2,11 @@
  * barrier -- mouse and keyboard sharing utility
  * Copyright (C) 2012-2016 Symless Ltd.
  * Copyright (C) 2002 Chris Schoeneman
- * 
+ *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * found in the file LICENSE that should have accompanied this file.
- * 
+ *
  * This package is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -40,11 +40,12 @@ TCPSocketFactory::~TCPSocketFactory()
     // do nothing
 }
 
-IDataSocket*
-TCPSocketFactory::create(IArchNetwork::EAddressFamily family, bool secure) const
+IDataSocket* TCPSocketFactory::create(IArchNetwork::EAddressFamily family,
+                                      ConnectionSecurityLevel security_level) const
 {
-    if (secure) {
-        SecureSocket* secureSocket = new SecureSocket(m_events, m_socketMultiplexer, family);
+    if (security_level != ConnectionSecurityLevel::PLAINTEXT) {
+        SecureSocket* secureSocket = new SecureSocket(m_events, m_socketMultiplexer, family,
+                                                      security_level);
         secureSocket->initSsl (false);
         return secureSocket;
     }
@@ -53,12 +54,12 @@ TCPSocketFactory::create(IArchNetwork::EAddressFamily family, bool secure) const
     }
 }
 
-IListenSocket*
-TCPSocketFactory::createListen(IArchNetwork::EAddressFamily family, bool secure) const
+IListenSocket* TCPSocketFactory::createListen(IArchNetwork::EAddressFamily family,
+                                              ConnectionSecurityLevel security_level) const
 {
     IListenSocket* socket = NULL;
-    if (secure) {
-        socket = new SecureListenSocket(m_events, m_socketMultiplexer, family);
+    if (security_level != ConnectionSecurityLevel::PLAINTEXT) {
+        socket = new SecureListenSocket(m_events, m_socketMultiplexer, family, security_level);
     }
     else {
         socket = new TCPListenSocket(m_events, m_socketMultiplexer, family);

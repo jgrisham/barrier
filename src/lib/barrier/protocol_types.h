@@ -2,11 +2,11 @@
  * barrier -- mouse and keyboard sharing utility
  * Copyright (C) 2012-2016 Symless Ltd.
  * Copyright (C) 2002 Chris Schoeneman
- * 
+ *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * found in the file LICENSE that should have accompanied this file.
- * 
+ *
  * This package is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -19,6 +19,8 @@
 #pragma once
 
 #include "base/EventTypes.h"
+
+#include <cstdint>
 
 // protocol version number
 // 1.0:  initial protocol
@@ -50,6 +52,12 @@ static const double        kKeepAlivesUntilDeath = 3.0;
 // obsolete heartbeat stuff
 static const double        kHeartRate = -1.0;
 static const double        kHeartBeatsUntilDeath = 3.0;
+
+// Messages of very large size indicate a likely protocol error. We don't parse such messages and
+// drop connection instead. Note that e.g. the clipboard messages are already limited to 32kB.
+static constexpr std::uint32_t PROTOCOL_MAX_MESSAGE_LENGTH = 4 * 1024 * 1024;
+static constexpr std::uint32_t PROTOCOL_MAX_LIST_LENGTH = 1024 * 1024;
+static constexpr std::uint32_t PROTOCOL_MAX_STRING_LENGTH = 1024 * 1024;
 
 // direction constants
 enum EDirection {
@@ -267,8 +275,8 @@ extern const char*        kMsgDSetOptions;
 // 2 means the file transfer is finished.
 extern const char*        kMsgDFileTransfer;
 
-// drag infomation:  primary <-> secondary
-// transfer drag infomation. The first 2 bytes are used for storing
+// drag information:  primary <-> secondary
+// transfer drag information. The first 2 bytes are used for storing
 // the number of dragging objects. Then the following string consists
 // of each object's directory.
 extern const char*        kMsgDDragInfo;

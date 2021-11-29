@@ -2,11 +2,11 @@
  * barrier -- mouse and keyboard sharing utility
  * Copyright (C) 2012-2016 Symless Ltd.
  * Copyright (C) 2003 Chris Schoeneman
- * 
+ *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * found in the file LICENSE that should have accompanied this file.
- * 
+ *
  * This package is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -376,7 +376,7 @@ Screen::isLockedToScreen() const
         if (buttonID != kButtonLeft) {
             LOG((CLOG_DEBUG "locked by mouse buttonID: %d", buttonID));
         }
-        
+
         if (m_enableDragDrop) {
             return (buttonID == kButtonLeft) ? false : true;
         }
@@ -464,6 +464,12 @@ const String&
 Screen::getDropTarget() const
 {
     return m_screen->getDropTarget();
+}
+
+void
+Screen::setDropTarget(const String& target)
+{
+    return m_screen->setDropTarget(target);
 }
 
 void*

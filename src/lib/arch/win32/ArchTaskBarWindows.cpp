@@ -2,11 +2,11 @@
  * barrier -- mouse and keyboard sharing utility
  * Copyright (C) 2012-2016 Symless Ltd.
  * Copyright (C) 2003 Chris Schoeneman
- * 
+ *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * found in the file LICENSE that should have accompanied this file.
- * 
+ *
  * This package is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -88,7 +88,7 @@ ArchTaskBarWindows::init()
     // create a window on the current desktop with the current
     // thread then the current thread won't be able to switch
     // desktops if it needs to.
-    m_thread      = ARCH->newThread(&ArchTaskBarWindows::threadEntry, this);
+    m_thread = ARCH->newThread([this]() { threadMainLoop(); });
 
     // wait for child thread
     while (!m_ready) {
@@ -499,13 +499,6 @@ ArchTaskBarWindows::threadMainLoop()
     removeAllIcons();
     DestroyWindow(m_hwnd);
     UnregisterClass(className, instanceWin32());
-}
-
-void*
-ArchTaskBarWindows::threadEntry(void* self)
-{
-    static_cast<ArchTaskBarWindows*>(self)->threadMainLoop();
-    return NULL;
 }
 
 HINSTANCE ArchTaskBarWindows::instanceWin32()

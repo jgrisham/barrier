@@ -2,11 +2,11 @@
  * barrier -- mouse and keyboard sharing utility
  * Copyright (C) 2012-2016 Symless Ltd.
  * Copyright (C) 2002 Chris Schoeneman
- * 
+ *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * found in the file LICENSE that should have accompanied this file.
- * 
+ *
  * This package is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -19,8 +19,9 @@
 #pragma once
 
 #include "common/IInterface.h"
+#include <functional>
 
-/*!      
+/*!
 \class ArchCondImpl
 \brief Internal condition variable data.
 An architecture dependent type holding the necessary data for a
@@ -28,35 +29,35 @@ condition variable.
 */
 class ArchCondImpl;
 
-/*!      
+/*!
 \var ArchCond
 \brief Opaque condition variable type.
 An opaque type representing a condition variable.
 */
 typedef ArchCondImpl* ArchCond;
 
-/*!      
+/*!
 \class ArchMutexImpl
 \brief Internal mutex data.
 An architecture dependent type holding the necessary data for a mutex.
 */
 class ArchMutexImpl;
 
-/*!      
+/*!
 \var ArchMutex
 \brief Opaque mutex type.
 An opaque type representing a mutex.
 */
 typedef ArchMutexImpl* ArchMutex;
 
-/*!      
+/*!
 \class ArchThreadImpl
 \brief Internal thread data.
 An architecture dependent type holding the necessary data for a thread.
 */
 class ArchThreadImpl;
 
-/*!      
+/*!
 \var ArchThread
 \brief Opaque thread type.
 An opaque type representing a thread.
@@ -71,7 +72,7 @@ barrier.  Each architecture must implement this interface.
 class IArchMultithread : public IInterface {
 public:
     //! Type of thread entry point
-    typedef void* (*ThreadFunc)(void*);
+    typedef void (*ThreadFunc)(void*);
     //! Type of thread identifier
     typedef unsigned int ThreadID;
     //! Types of signals
@@ -160,7 +161,7 @@ public:
     Creates and starts a new thread, using \c func as the entry point
     and passing it \c userData.  The thread is an opaque data type.
     */
-    virtual ArchThread    newThread(ThreadFunc func, void* userData) = 0;
+    virtual ArchThread newThread(const std::function<void()>& func) = 0;
 
     //! Get a reference to the calling thread
     /*!
@@ -234,15 +235,6 @@ public:
     Returns true iff \c thread has exited.
     */
     virtual bool        isExitedThread(ArchThread thread) = 0;
-
-    //! Returns the exit code of a thread
-    /*!
-    Waits indefinitely for \c thread to exit (if it hasn't yet) then
-    returns the thread's exit code.
-
-    (Cancellation point)
-    */
-    virtual void*        getResultOfThread(ArchThread thread) = 0;
 
     //! Returns an ID for a thread
     /*!

@@ -66,7 +66,7 @@ ZeroconfService::ZeroconfService(MainWindow* mainWindow) :
     m_ServiceRegistered(false)
 {
     silence_avahi_warning();
-    if (m_pMainWindow->barrierType() == MainWindow::barrierServer) {
+    if (m_pMainWindow->barrier_type() == BarrierType::Server) {
         if (registerService(true)) {
             m_pZeroconfBrowser = new ZeroconfBrowser(this);
             connect(m_pZeroconfBrowser, SIGNAL(
@@ -101,7 +101,7 @@ ZeroconfService::~ZeroconfService()
 
 void ZeroconfService::serverDetected(const QList<ZeroconfRecord>& list)
 {
-    foreach (ZeroconfRecord record, list) {
+    for (ZeroconfRecord record : list) {
         registerService(false);
         m_pMainWindow->appendLogInfo(tr("zeroconf server detected: %1").arg(
             record.serviceName));
@@ -111,7 +111,7 @@ void ZeroconfService::serverDetected(const QList<ZeroconfRecord>& list)
 
 void ZeroconfService::clientDetected(const QList<ZeroconfRecord>& list)
 {
-    foreach (ZeroconfRecord record, list) {
+    for (ZeroconfRecord record : list) {
         m_pMainWindow->appendLogInfo(tr("zeroconf client detected: %1").arg(
             record.serviceName));
         m_pMainWindow->autoAddScreen(record.serviceName);
@@ -127,15 +127,15 @@ void ZeroconfService::errorHandle(DNSServiceErrorType errorCode)
 QString ZeroconfService::getLocalIPAddresses()
 {
     QStringList addresses;
-    foreach (const QHostAddress& address, QNetworkInterface::allAddresses()) {
+    for (const QHostAddress& address : QNetworkInterface::allAddresses()) {
         if (address.protocol() == QAbstractSocket::IPv4Protocol &&
             address != QHostAddress(QHostAddress::LocalHost)) {
             addresses.append(address.toString());
         }
     }
 
-    foreach (const QString& preferedIP, preferedIPAddress) {
-        foreach (const QString& address, addresses) {
+    for (const QString& preferedIP : preferedIPAddress) {
+        for (const QString& address : addresses) {
             if (address.startsWith(preferedIP)) {
                 return address;
             }

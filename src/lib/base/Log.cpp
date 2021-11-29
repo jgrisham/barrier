@@ -2,11 +2,11 @@
  * barrier -- mouse and keyboard sharing utility
  * Copyright (C) 2012-2016 Symless Ltd.
  * Copyright (C) 2002 Chris Schoeneman
- * 
+ *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * found in the file LICENSE that should have accompanied this file.
- * 
+ *
  * This package is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.    See the
@@ -25,7 +25,7 @@
 #include <cstdio>
 #include <cstring>
 #include <iostream>
-#include <ctime> 
+#include <ctime>
 
 // names of priorities
 static const char*        g_priority[] = {
@@ -62,7 +62,7 @@ Log::Log()
 {
     assert(s_log == NULL);
 
-    // other initalization
+    // other initialization
     m_maxPriority = g_defaultMaxPriority;
     m_maxNewlineLength = 0;
     insert(new ConsoleLogOutputter);
@@ -145,7 +145,7 @@ Log::print(const char* file, int line, const char* fmt, ...)
         // try printing into the buffer
         va_list args;
         va_start(args, fmt);
-        int n = ARCH->vsnprintf(buffer, len    - sPad, fmt, args);
+        int n = std::vsnprintf(buffer, len - sPad, fmt, args);
         va_end(args);
 
         // if the buffer wasn't big enough then make it bigger and try again

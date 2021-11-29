@@ -2,11 +2,11 @@
  * barrier -- mouse and keyboard sharing utility
  * Copyright (C) 2012-2016 Symless Ltd.
  * Copyright (C) 2002 Chris Schoeneman
- * 
+ *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * found in the file LICENSE that should have accompanied this file.
- * 
+ *
  * This package is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -59,7 +59,7 @@ public:
 
     // Parse command line arguments.
     virtual void parseArgs(int argc, const char* const* argv) = 0;
-    
+
     int run(int argc, char** argv);
 
     int daemonMainLoop(int, const char**);
@@ -90,11 +90,11 @@ public:
 
     ARCH_APP_UTIL& appUtil() { return m_appUtil; }
 
-    virtual IArchTaskBarReceiver* taskBarReceiver() const  { return m_taskBarReceiver; }
+    virtual IArchTaskBarReceiver* taskBarReceiver() const { return m_taskBarReceiver; }
 
     virtual void setByeFunc(void(*bye)(int)) { m_bye = bye; }
     virtual void bye(int error) { m_bye(error); }
-    
+
     virtual IEventQueue* getEvents() const { return m_events; }
 
     void setSocketMultiplexer(std::unique_ptr<SocketMultiplexer>&& sm) { m_socketMultiplexer = std::move(sm); }
@@ -108,7 +108,7 @@ private:
 protected:
     void                initIpcClient();
     void                cleanupIpcClient();
-    void                runEventsLoop(void*);
+    void run_events_loop();
 
     IArchTaskBarReceiver* m_taskBarReceiver;
     bool m_suspended;
@@ -135,7 +135,7 @@ public:
     virtual void        startNode();
     virtual int            mainLoop();
     virtual int            foregroundStartup(int argc, char** argv);
-    virtual barrier::Screen*    
+    virtual barrier::Screen*
                         createScreen();
     virtual void        loadConfig();
     virtual bool        loadConfig(const String& pathname);
@@ -166,7 +166,10 @@ private:
     "  -l  --log <file>         write log messages to file.\n" \
     "      --no-tray            disable the system tray icon.\n" \
     "      --enable-drag-drop   enable file drag & drop.\n" \
-    "      --enable-crypto      enable the crypto (ssl) plugin.\n"
+    "      --enable-crypto      enable the crypto (ssl) plugin (default, deprecated).\n" \
+    "      --disable-crypto     disable the crypto (ssl) plugin.\n" \
+    "      --profile-dir <path> use named profile directory instead.\n" \
+    "      --drop-dir <path>    use named drop target directory instead.\n"
 
 #define HELP_COMMON_INFO_2 \
     "  -h, --help               display this help and exit.\n" \
@@ -191,12 +194,11 @@ private:
 
 // windows args
 #  define HELP_SYS_ARGS \
-    " [--service <action>] [--relaunch] [--exit-pause]"
+    " [--exit-pause]"
 #  define HELP_SYS_INFO \
     "      --service <action>   manage the windows service, valid options are:\n" \
     "                             install/uninstall/start/stop\n" \
-    "      --relaunch           persistently relaunches process in current user \n" \
-    "                             session (useful for vista and upward).\n" \
+    "                             (obsolete, use barrierd instead)\n" \
     "      --exit-pause         wait for key press on exit, can be useful for\n" \
     "                             reading error messages that occur on exit.\n"
 #endif

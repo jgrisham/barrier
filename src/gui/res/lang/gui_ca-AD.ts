@@ -648,13 +648,18 @@ To automatically trust this fingerprint for future connections, click Yes. To re
     <name>QObject</name>
     <message>
         <location filename="src/MainWindow.cpp" line="60"/>
-        <source>Barrier Configurations (*.sgc);;All files (*.*)</source>
-        <translation type="finished">Configuracions Barrier (*.sgc);;Tots els arxius (*.*)</translation>
+        <source>All files (*.*)</source>
+        <translation type="finished">Tots els arxius (*.*)</translation>
+    </message>
+    <message>
+        <location filename="src/MainWindow.cpp" line="60"/>
+        <source>Barrier Configurations (*.sgc)</source>
+        <translation type="finished">Configuracions Barrier (*.sgc)</translation>
     </message>
     <message>
         <location filename="src/MainWindow.cpp" line="67"/>
-        <source>Barrier Configurations (*.conf);;All files (*.*)</source>
-        <translation type="finished">Configuracions Barrier (*.conf);;Tots els arxius (*.*)</translation>
+        <source>Barrier Configurations (*.conf)</source>
+        <translation type="finished">Configuracions Barrier (*.conf)</translation>
     </message>
     <message>
         <location filename="src/main.cpp" line="119"/>
@@ -900,8 +905,8 @@ To automatically trust this fingerprint for future connections, click Yes. To re
         <source>Drag new screens to the grid or move existing ones around.
 Drag a screen to the trashcan to delete it.
 Double click on a screen to edit its settings.</source>
-        <translation type="finished">Arrossega noves pantalles a la graella o mou les actuals al voltant. 
-Arrossega una pantalla a la paperera per eliminar-la. 
+        <translation type="finished">Arrossega noves pantalles a la graella o mou les actuals al voltant.
+Arrossega una pantalla a la paperera per eliminar-la.
 Fes doble clic a una pantalla per editar la seva configuració.</translation>
     </message>
     <message>
@@ -1330,7 +1335,7 @@ p, li { white-space: pre-wrap; }
 Server response:
 
 %1</source>
-        <translation type="finished">Error inici de sessió, hi ha hagut un error. 
+        <translation type="finished">Error inici de sessió, hi ha hagut un error.
 Resposta del servidor:
 %1</translation>
     </message>

@@ -2,11 +2,11 @@
  * barrier -- mouse and keyboard sharing utility
  * Copyright (C) 2012-2016 Symless Ltd.
  * Copyright (C) 2003 Chris Schoeneman
- * 
+ *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * found in the file LICENSE that should have accompanied this file.
- * 
+ *
  * This package is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -23,18 +23,10 @@
 #include "common/stdvector.h"
 #include "XWindowsImpl.h"
 
-#if X_DISPLAY_MISSING
-#    error X11 is required to build barrier
-#else
-#    include <X11/Xlib.h>
-#    if HAVE_X11_EXTENSIONS_XTEST_H
-#        include <X11/extensions/XTest.h>
-#    else
-#        error The XTest extension is required to build barrier
-#    endif
-#    if HAVE_XKB_EXTENSION
-#        include <X11/extensions/XKBstr.h>
-#    endif
+#include <X11/Xlib.h>
+#include <X11/extensions/XTest.h>
+#if HAVE_XKB_EXTENSION
+#    include <X11/extensions/XKBstr.h>
 #endif
 
 class IEventQueue;

@@ -2,11 +2,11 @@
  * barrier -- mouse and keyboard sharing utility
  * Copyright (C) 2012-2016 Symless Ltd.
  * Copyright (C) 2012 Nick Bolton
- * 
+ *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * found in the file LICENSE that should have accompanied this file.
- * 
+ *
  * This package is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -28,7 +28,6 @@
 #include "base/Event.h"
 #include "base/EventQueue.h"
 #include "base/TMethodEventJob.h"
-#include "base/TMethodJob.h"
 
 enum EIpcLogOutputter {
     kBufferMaxSize = 1000,
@@ -54,8 +53,7 @@ IpcLogOutputter::IpcLogOutputter(IpcServer& ipcServer, EIpcClientType clientType
     m_clientType(clientType)
 {
     if (useThread) {
-        m_bufferThread = new Thread(new TMethodJob<IpcLogOutputter>(
-            this, &IpcLogOutputter::bufferThread));
+        m_bufferThread = new Thread([this](){ buffer_thread(); });
     }
 }
 
@@ -142,8 +140,7 @@ IpcLogOutputter::isRunning()
     return m_running;
 }
 
-void
-IpcLogOutputter::bufferThread(void*)
+void IpcLogOutputter::buffer_thread()
 {
     m_bufferThreadId = m_bufferThread->getID();
     m_running = true;

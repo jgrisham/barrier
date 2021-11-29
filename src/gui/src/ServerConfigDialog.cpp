@@ -2,11 +2,11 @@
  * barrier -- mouse and keyboard sharing utility
  * Copyright (C) 2012-2016 Symless Ltd.
  * Copyright (C) 2008 Volker Lanz (vl@fidra.de)
- * 
+ *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * found in the file LICENSE that should have accompanied this file.
- * 
+ *
  * This package is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -60,8 +60,9 @@ ServerConfigDialog::ServerConfigDialog(QWidget* parent, ServerConfig& config, co
 
     m_pCheckBoxEnableClipboard->setChecked(serverConfig().clipboardSharing());
 
-    foreach(const Hotkey& hotkey, serverConfig().hotkeys())
+    for (const Hotkey& hotkey : serverConfig().hotkeys()) {
         m_pListHotkeys->addItem(hotkey.text());
+    }
 
     m_pScreenSetupView->setModel(&m_ScreenSetupModel);
 
@@ -75,7 +76,7 @@ void ServerConfigDialog::showEvent(QShowEvent* event)
 
     if (!m_Message.isEmpty())
     {
-        // TODO: ideally this massage box should pop up after the dialog is shown
+        // TODO: ideally this message box should pop up after the dialog is shown
         QMessageBox::information(this, tr("Configure server"), m_Message);
     }
 }
@@ -121,7 +122,7 @@ void ServerConfigDialog::on_m_pButtonNewHotkey_clicked()
     HotkeyDialog dlg(this, hotkey);
     if (dlg.exec() == QDialog::Accepted)
     {
-        serverConfig().hotkeys().append(hotkey);
+        serverConfig().hotkeys().push_back(hotkey);
         m_pListHotkeys->addItem(hotkey.text());
     }
 }
@@ -140,7 +141,7 @@ void ServerConfigDialog::on_m_pButtonRemoveHotkey_clicked()
 {
     int idx = m_pListHotkeys->currentRow();
     Q_ASSERT(idx >= 0 && idx < serverConfig().hotkeys().size());
-    serverConfig().hotkeys().removeAt(idx);
+    serverConfig().hotkeys().erase(serverConfig().hotkeys().begin() + idx);
     m_pListActions->clear();
     delete m_pListHotkeys->item(idx);
 }
@@ -168,8 +169,9 @@ void ServerConfigDialog::on_m_pListHotkeys_itemSelectionChanged()
         Q_ASSERT(idx >= 0 && idx < serverConfig().hotkeys().size());
 
         const Hotkey& hotkey = serverConfig().hotkeys()[idx];
-        foreach(const Action& action, hotkey.actions())
+        for (const Action& action : hotkey.actions()) {
             m_pListActions->addItem(action.text());
+        }
     }
 }
 
@@ -183,7 +185,7 @@ void ServerConfigDialog::on_m_pButtonNewAction_clicked()
     ActionDialog dlg(this, serverConfig(), hotkey, action);
     if (dlg.exec() == QDialog::Accepted)
     {
-        hotkey.actions().append(action);
+        hotkey.appendAction(action);
         m_pListActions->addItem(action.text());
     }
 }
@@ -196,11 +198,13 @@ void ServerConfigDialog::on_m_pButtonEditAction_clicked()
 
     int idxAction = m_pListActions->currentRow();
     Q_ASSERT(idxAction >= 0 && idxAction < hotkey.actions().size());
-    Action& action = hotkey.actions()[idxAction];
+    Action action = hotkey.actions()[idxAction];
 
     ActionDialog dlg(this, serverConfig(), hotkey, action);
-    if (dlg.exec() == QDialog::Accepted)
+    if (dlg.exec() == QDialog::Accepted) {
+        hotkey.setAction(idxAction, action);
         m_pListActions->currentItem()->setText(action.text());
+    }
 }
 
 void ServerConfigDialog::on_m_pButtonRemoveAction_clicked()
@@ -212,7 +216,7 @@ void ServerConfigDialog::on_m_pButtonRemoveAction_clicked()
     int idxAction = m_pListActions->currentRow();
     Q_ASSERT(idxAction >= 0 && idxAction < hotkey.actions().size());
 
-    hotkey.actions().removeAt(idxAction);
+    hotkey.removeAction(idxAction);
     delete m_pListActions->currentItem();
 }
 

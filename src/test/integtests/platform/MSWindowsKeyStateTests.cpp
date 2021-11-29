@@ -2,11 +2,11 @@
  * barrier -- mouse and keyboard sharing utility
  * Copyright (C) 2012-2016 Symless Ltd.
  * Copyright (C) 2011 Nick Bolton
- * 
+ *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * found in the file LICENSE that should have accompanied this file.
- * 
+ *
  * This package is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -24,7 +24,6 @@
 #include "platform/MSWindowsDesks.h"
 #include "platform/MSWindowsScreen.h"
 #include "platform/MSWindowsScreenSaver.h"
-#include "base/TMethodJob.h"
 
 #include "test/global/gtest.h"
 #include "test/global/gmock.h"
@@ -50,10 +49,7 @@ protected:
 
 	MSWindowsDesks* newDesks(IEventQueue* eventQueue)
 	{
-		return new MSWindowsDesks(
-			true, false, m_screensaver, eventQueue,
-			new TMethodJob<MSWindowsKeyStateTests>(
-				this, &MSWindowsKeyStateTests::updateKeysCB), false);
+		return new MSWindowsDesks(true, false, m_screensaver, eventQueue, [](){}, false);
 	}
 
 	void* getEventTarget() const
@@ -62,9 +58,7 @@ protected:
 	}
 
 private:
-	void updateKeysCB(void*) { }
 	IScreenSaver* m_screensaver;
-	MSWindowsHook m_hook;
 };
 
 TEST_F(MSWindowsKeyStateTests, disable_eventQueueNotUsed)
@@ -73,7 +67,7 @@ TEST_F(MSWindowsKeyStateTests, disable_eventQueueNotUsed)
 	MSWindowsDesks* desks = newDesks(&eventQueue);
 	MockKeyMap keyMap;
 	MSWindowsKeyState keyState(desks, getEventTarget(), &eventQueue, keyMap);
-	
+
 	EXPECT_CALL(eventQueue, removeHandler(_, _)).Times(0);
 
 	keyState.disable();

@@ -2,11 +2,11 @@
  * barrier -- mouse and keyboard sharing utility
  * Copyright (C) 2012-2016 Symless Ltd.
  * Copyright (C) 2003 Chris Schoeneman
- * 
+ *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * found in the file LICENSE that should have accompanied this file.
- * 
+ *
  * This package is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -24,17 +24,13 @@
 
 #include <cstddef>
 #include <algorithm>
-#if X_DISPLAY_MISSING
-#    error X11 is required to build barrier
-#else
-#    include <X11/X.h>
-#    include <X11/Xutil.h>
-#    define XK_MISCELLANY
-#    define XK_XKB_KEYS
-#    include <X11/keysymdef.h>
+#include <X11/X.h>
+#include <X11/Xutil.h>
+#define XK_MISCELLANY
+#define XK_XKB_KEYS
+#include <X11/keysymdef.h>
 #if HAVE_XKB_EXTENSION
 #    include <X11/XKBlib.h>
-#endif
 #endif
 
 static const size_t ModifiersFromXDefaultSize = 32;
@@ -348,7 +344,7 @@ XWindowsKeyState::updateKeysymMap(barrier::KeyMap& keyMap)
                 else {
                     tmpKeysyms[maxKeysyms * i + j] = NoSymbol;
                 }
-            }    
+            }
         }
         m_impl->XFree(allKeysyms);
         allKeysyms = tmpKeysyms;

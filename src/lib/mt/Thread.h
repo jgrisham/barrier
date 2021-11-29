@@ -2,11 +2,11 @@
  * barrier -- mouse and keyboard sharing utility
  * Copyright (C) 2012-2016 Symless Ltd.
  * Copyright (C) 2002 Chris Schoeneman
- * 
+ *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * found in the file LICENSE that should have accompanied this file.
- * 
+ *
  * This package is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -19,13 +19,12 @@
 #pragma once
 
 #include "arch/IArchMultithread.h"
-
-class IJob;
+#include <functional>
 
 //! Thread handle
 /*!
 Creating a Thread creates a new context of execution (i.e. thread) that
-runs simulatenously with the calling thread.  A Thread is only a handle
+runs simultaneously with the calling thread.  A Thread is only a handle
 to a thread;  deleting a Thread does not cancel or destroy the thread it
 refers to and multiple Thread objects can refer to the same thread.
 
@@ -44,10 +43,9 @@ class Thread {
 public:
     //! Run \c adoptedJob in a new thread
     /*!
-    Create and start a new thread executing the \c adoptedJob.  The
-    new thread takes ownership of \c adoptedJob and will delete it.
+    Create and start a new thread executing the \c fun.
     */
-    Thread(IJob* adoptedJob);
+    Thread(const std::function<void()>& fun);
 
     //! Duplicate a thread handle
     /*!
@@ -79,8 +77,7 @@ public:
     /*!
     Terminate the calling thread.  This function does not return but
     the stack is unwound and automatic objects are destroyed, as if
-    exit() threw an exception (which is, in fact, what it does).  The
-    argument is saved as the result returned by getResult().  If you
+    exit() threw an exception (which is, in fact, what it does). If you
     have \c catch(...) blocks then you should add the following before
     each to avoid catching the exit:
     \code
@@ -98,7 +95,7 @@ public:
     enabled.  If cancellation is disabled then the cancel is
     remembered but not acted on until the first call to a
     cancellation point after cancellation is enabled.
-    
+
     A cancellation point is a function that can act on cancellation.
     A cancellation point does not return if there's a cancel pending.
     Instead, it unwinds the stack and destroys automatic objects, as
@@ -110,7 +107,7 @@ public:
     objects (like Lock).  Clients are strongly encouraged to do the latter.
     During cancellation, further cancel() calls are ignored (i.e.
     a thread cannot be interrupted by a cancel during cancellation).
-    
+
     Clients that \c catch(XThreadCancel) must always rethrow the
     exception.  Clients that \c catch(...) must either rethrow the
     exception or include a \c catch(XThreadCancel) handler that
@@ -122,7 +119,7 @@ public:
     /*!
     Change the priority of the thread.  Normal priority is 0, 1 is
     the next lower, etc.  -1 is the next higher, etc. but boosting
-    the priority may not be permitted and will be silenty ignored.
+    the priority may not be permitted and will be silently ignored.
     */
     void                setPriority(int n);
 
@@ -167,16 +164,6 @@ public:
     */
     bool                wait(double timeout = -1.0) const;
 
-    //! Get the exit result
-    /*!
-    Returns the exit result.  This does an implicit wait().  It returns
-    NULL immediately if called by a thread on itself or on a thread that
-    was cancelled.
-
-    (cancellation point)
-    */
-    void*                getResult() const;
-
     //! Get the thread id
     /*!
     Returns an integer id for this thread.  This id must not be used to
@@ -203,7 +190,7 @@ public:
 private:
     Thread(ArchThread);
 
-    static void*        threadFunc(void*);
+    static void threadFunc(const std::function<void()>& func);
 
 private:
     ArchThread            m_thread;

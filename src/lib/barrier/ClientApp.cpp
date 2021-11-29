@@ -2,11 +2,11 @@
  * barrier -- mouse and keyboard sharing utility
  * Copyright (C) 2012-2016 Symless Ltd.
  * Copyright (C) 2002 Chris Schoeneman
- * 
+ *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * found in the file LICENSE that should have accompanied this file.
- * 
+ *
  * This package is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -37,10 +37,8 @@
 #include "base/TMethodEventJob.h"
 #include "base/log_outputters.h"
 #include "base/EventQueue.h"
-#include "base/TMethodJob.h"
 #include "base/Log.h"
 #include "common/Version.h"
-#include "common/PathUtilities.h"
 
 #if WINAPI_MSWINDOWS
 #include "platform/MSWindowsScreen.h"
@@ -118,23 +116,23 @@ ClientApp::help()
 #endif
 
     std::ostringstream buffer;
-    buffer << "Start the barrier client and connect to a remote server component." << std::endl
-           << std::endl
+    buffer << "Start the barrier client and connect to a remote server component.\n"
+           << "\n"
            << "Usage: " << args().m_exename << " [--yscroll <delta>]" <<  WINAPI_ARG << HELP_SYS_ARGS
-           << HELP_COMMON_ARGS << " <server-address>" << std::endl
-           << std::endl
-           << "Options:" << std::endl
+           << HELP_COMMON_ARGS << " <server-address>\n"
+           << "\n"
+           << "Options:\n"
            << HELP_COMMON_INFO_1 << WINAPI_INFO << HELP_SYS_INFO
-           << "      --yscroll <delta>    defines the vertical scrolling delta, which is" << std::endl
-           << "                           120 by default." << std::endl
+           << "      --yscroll <delta>    defines the vertical scrolling delta, which is\n"
+           << "                           120 by default.\n"
            << HELP_COMMON_INFO_2
-           << std::endl
-           << "Default options are marked with a *" << std::endl
-           << std::endl
-           << "The server address is of the form: [<hostname>][:<port>]. The hostname" << std::endl
-           << "must be the address or hostname of the server. Placing brackets around" << std::endl
-           << "an IPv6 address is required when also specifying a port number and " << std::endl
-           << "optional otherwise. The default port number is " << kDefaultPort << "." << std::endl;
+           << "\n"
+           << "Default options are marked with a *\n"
+           << "\n"
+           << "The server address is of the form: [<hostname>][:<port>]. The hostname\n"
+           << "must be the address or hostname of the server. Placing brackets around\n"
+           << "an IPv6 address is required when also specifying a port number and \n"
+           << "optional otherwise. The default port number is " << kDefaultPort << ".\n";
 
     LOG((CLOG_PRINT "%s", buffer.str().c_str()));
 }
@@ -235,6 +233,9 @@ barrier::Screen*
 ClientApp::openClientScreen()
 {
     barrier::Screen* screen = createScreen();
+    if (!argsBase().m_dropTarget.empty()) {
+        screen->setDropTarget(argsBase().m_dropTarget);
+    }
     screen->setEnableDragDrop(argsBase().m_enableDragDrop);
     m_events->adoptHandler(m_events->forIScreen().error(),
         screen->getEventTarget(),
@@ -449,7 +450,7 @@ ClientApp::mainLoop()
 
     // start client, etc
     appUtil().startNode();
-    
+
     // init ipc client after node start, since create a new screen wipes out
     // the event queue (the screen ctors call adoptBuffer).
     if (argsBase().m_enableIpc) {
@@ -460,24 +461,21 @@ ClientApp::mainLoop()
     // later.  the timer installed by startClient() will take care of
     // that.
     DAEMON_RUNNING(true);
-    
+
 #if defined(MAC_OS_X_VERSION_10_7)
-    
-    Thread thread(
-        new TMethodJob<ClientApp>(
-            this, &ClientApp::runEventsLoop,
-            NULL));
-    
+
+    Thread thread([this](){ run_events_loop(); });
+
     // wait until carbon loop is ready
     OSXScreen* screen = dynamic_cast<OSXScreen*>(
         m_clientScreen->getPlatformScreen());
     screen->waitForCarbonLoop();
-    
+
     runCocoaApp();
 #else
     m_events->loop();
 #endif
-    
+
     DAEMON_RUNNING(false);
 
     // close down
@@ -519,7 +517,7 @@ ClientApp::runInner(int argc, char** argv, ILogOutputter* outputter, StartupFunc
 {
     // general initialization
     m_serverAddress = new NetworkAddress;
-    args().m_exename = PathUtilities::basename(argv[0]);
+    argsBase().m_exename = ArgParser::parse_exename(argv[0]);
 
     // install caller's output filter
     if (outputter != NULL) {
@@ -548,7 +546,7 @@ ClientApp::runInner(int argc, char** argv, ILogOutputter* outputter, StartupFunc
     return result;
 }
 
-void 
+void
 ClientApp::startNode()
 {
     // start the client.  if this return false then we've failed and

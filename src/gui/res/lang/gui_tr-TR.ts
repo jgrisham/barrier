@@ -648,12 +648,17 @@ To automatically trust this fingerprint for future connections, click Yes. To re
     <name>QObject</name>
     <message>
         <location filename="src/MainWindow.cpp" line="60"/>
-        <source>Barrier Configurations (*.sgc);;All files (*.*)</source>
+        <source>All files (*.*)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/MainWindow.cpp" line="60"/>
+        <source>Barrier Configurations (*.sgc)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="src/MainWindow.cpp" line="67"/>
-        <source>Barrier Configurations (*.conf);;All files (*.*)</source>
+        <source>Barrier Configurations (*.conf)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -900,8 +905,8 @@ To automatically trust this fingerprint for future connections, click Yes. To re
         <source>Drag new screens to the grid or move existing ones around.
 Drag a screen to the trashcan to delete it.
 Double click on a screen to edit its settings.</source>
-        <translation type="finished">Izgaraya yeni ekranları sürükleyin veya çevresinde mevcut olanları taşıyın. 
-Silmek için çöp tenekesine ekranı sürükleyin. 
+        <translation type="finished">Izgaraya yeni ekranları sürükleyin veya çevresinde mevcut olanları taşıyın.
+Silmek için çöp tenekesine ekranı sürükleyin.
 Kendi ayarlarınızı düzenlemek için bir ekran üzerine çift tıklayın.</translation>
     </message>
     <message>

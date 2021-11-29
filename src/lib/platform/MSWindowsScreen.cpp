@@ -3,11 +3,11 @@
  * Copyright (C) 2018 Debauchee Open Source Group
  * Copyright (C) 2012-2016 Symless Ltd.
  * Copyright (C) 2002 Chris Schoeneman
- * 
+ *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * found in the file LICENSE that should have accompanied this file.
- * 
+ *
  * This package is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -36,11 +36,9 @@
 #include "mt/Thread.h"
 #include "arch/win32/ArchMiscWindows.h"
 #include "arch/Arch.h"
-#include "base/FunctionJob.h"
 #include "base/Log.h"
 #include "base/IEventQueue.h"
 #include "base/TMethodEventJob.h"
-#include "base/TMethodJob.h"
 
 #include <string.h>
 #include <Shlobj.h>
@@ -134,8 +132,7 @@ MSWindowsScreen::MSWindowsScreen(
                             m_noHooks,
                             m_screensaver,
                             m_events,
-                            new TMethodJob<MSWindowsScreen>(
-                                this, &MSWindowsScreen::updateKeysCB),
+                                           [this]() { updateKeysCB(); },
                             stopOnDeskSwitch);
         m_keyState    = new MSWindowsKeyState(m_desks, getEventTarget(), m_events);
 
@@ -145,16 +142,6 @@ MSWindowsScreen::MSWindowsScreen(
         forceShowCursor();
         LOG((CLOG_DEBUG "screen shape: %d,%d %dx%d %s", m_x, m_y, m_w, m_h, m_multimon ? "(multi-monitor)" : ""));
         LOG((CLOG_DEBUG "window is 0x%08x", m_window));
-        
-        // SHGetFolderPath is deprecated in vista, but use it for xp support.
-        char desktopPath[MAX_PATH];
-        if (SUCCEEDED(SHGetFolderPath(NULL, CSIDL_DESKTOP, NULL, 0, desktopPath))) {
-            m_desktopPath = std::string(desktopPath);
-            LOG((CLOG_DEBUG "using desktop for drop target: %s", m_desktopPath.c_str()));
-        }
-        else {
-            LOG((CLOG_ERR "failed to get desktop path, no drop target available, error=%d", GetLastError()));
-        }
 
         OleInitialize(0);
         m_dropWindow = createDropWindow(m_class, "DropWindow");
@@ -365,17 +352,13 @@ MSWindowsScreen::leave()
     forceShowCursor();
 
     if (isDraggingStarted() && !m_isPrimary) {
-        m_sendDragThread = new Thread(
-            new TMethodJob<MSWindowsScreen>(
-                this,
-                &MSWindowsScreen::sendDragThread));
+        m_sendDragThread = new Thread([this](){ send_drag_thread(); });
     }
 
     return true;
 }
 
-void
-MSWindowsScreen::sendDragThread(void*)
+void MSWindowsScreen::send_drag_thread()
 {
     std::string& draggingFilename = getDraggingFilename();
     size_t size = draggingFilename.size();
@@ -389,7 +372,7 @@ MSWindowsScreen::sendDragThread(void*)
         LOG((CLOG_DEBUG "send dragging file to server"));
         client->sendFileToServer(draggingFilename.c_str());
     }
-    
+
     m_draggingStarted = false;
 }
 
@@ -636,7 +619,7 @@ MSWindowsScreen::registerHotKey(KeyID key, KeyModifierMask mask)
         LOG((CLOG_WARN "failed to register hotkey %s (id=%04x mask=%04x)", barrier::KeyMap::formatKey(key, mask).c_str(), key, mask));
         return 0;
     }
-    
+
     LOG((CLOG_DEBUG "registered hotkey %s (id=%04x mask=%04x) as id=%d", barrier::KeyMap::formatKey(key, mask).c_str(), key, mask, id));
     return id;
 }
@@ -1114,7 +1097,7 @@ MSWindowsScreen::onKey(WPARAM wParam, LPARAM lParam)
     static const KeyModifierMask s_ctrlAlt =
         KeyModifierControl | KeyModifierAlt;
 
-    LOG((CLOG_DEBUG1 "event: Key char=%d, vk=0x%02x, nagr=%d, lParam=0x%08x", (wParam & 0xff00u) >> 8, wParam & 0xffu, (wParam & 0x10000u) ? 1 : 0, lParam));
+    LOG((CLOG_DEBUG1 "event: Key char=%d, vk=0x%02x, nagr=%d, lParam=0x%08x", wParam & 0xffffu, (wParam >> 16) & 0xffu, (wParam & 0x1000000u) ? 1 : 0, lParam));
 
     // get event info
     KeyButton button         = (KeyButton)((lParam & 0x01ff0000) >> 16);
@@ -1132,7 +1115,7 @@ MSWindowsScreen::onKey(WPARAM wParam, LPARAM lParam)
     // that maps mouse buttons to keys is known to do this.
     // alternatively, we could just throw these events out.
     if (button == 0) {
-        button = m_keyState->virtualKeyToButton(wParam & 0xffu);
+        button = m_keyState->virtualKeyToButton((wParam >> 16) & 0xffu);
         if (button == 0) {
             return true;
         }
@@ -1198,7 +1181,7 @@ MSWindowsScreen::onKey(WPARAM wParam, LPARAM lParam)
     if (!ignore()) {
         // check for ctrl+alt+del.  we do not want to pass that to the
         // client.  the user can use ctrl+alt+pause to emulate it.
-        UINT virtKey = (wParam & 0xffu);
+        UINT virtKey = (wParam >> 16) & 0xffu;
         if (virtKey == VK_DELETE && (state & s_ctrlAlt) == s_ctrlAlt) {
             LOG((CLOG_DEBUG "discard ctrl+alt+del"));
             return true;
@@ -1212,9 +1195,9 @@ MSWindowsScreen::onKey(WPARAM wParam, LPARAM lParam)
             // pressed or released.  when mapping the key we require that
             // we not use AltGr (the 0x10000 flag in wParam) and we not
             // use the keypad delete key (the 0x01000000 flag in lParam).
-            wParam  = VK_DELETE | 0x00010000u;
+            wParam  = (VK_DELETE << 16) | 0x01000000u;
             lParam &= 0xfe000000;
-            lParam |= m_keyState->virtualKeyToButton(wParam & 0xffu) << 16;
+            lParam |= m_keyState->virtualKeyToButton(VK_DELETE) << 16;
             lParam |= 0x01000001;
         }
 
@@ -1242,7 +1225,7 @@ MSWindowsScreen::onHotKey(WPARAM wParam, LPARAM lParam)
 {
     // get the key info
     KeyModifierMask state = getActiveModifiers();
-    UINT virtKey   = (wParam & 0xffu);
+    UINT virtKey   = (wParam >> 16) & 0xffu;
     UINT modifiers = 0;
     if ((state & KeyModifierShift) != 0) {
         modifiers |= MOD_SHIFT;
@@ -1360,7 +1343,7 @@ MSWindowsScreen::onMouseMove(SInt32 mx, SInt32 my)
     saveMousePosition(mx, my);
 
     if (m_isOnScreen) {
-        
+
         // motion on primary screen
         sendEvent(
             m_events->forIPrimaryScreen().motionOnPrimary(),
@@ -1370,15 +1353,15 @@ MSWindowsScreen::onMouseMove(SInt32 mx, SInt32 my)
             m_draggingStarted = true;
         }
     }
-    else 
+    else
     {
         // the motion is on the secondary screen, so we warp mouse back to
-        // center on the server screen. if we don't do this, then the mouse 
-        // will always try to return to the original entry point on the 
+        // center on the server screen. if we don't do this, then the mouse
+        // will always try to return to the original entry point on the
         // secondary screen.
         LOG((CLOG_DEBUG5 "warping server cursor to center: %+d,%+d", m_xCenter, m_yCenter));
         warpCursorNoFlush(m_xCenter, m_yCenter);
-        
+
         // examine the motion.  if it's about the distance
         // from the center of the screen to an edge then
         // it's probably a bogus motion that we want to
@@ -1389,7 +1372,7 @@ MSWindowsScreen::onMouseMove(SInt32 mx, SInt32 my)
              x + bogusZoneSize > m_x + m_w - m_xCenter ||
             -y + bogusZoneSize > m_yCenter - m_y ||
              y + bogusZoneSize > m_y + m_h - m_yCenter) {
-            
+
             LOG((CLOG_DEBUG "dropped bogus delta motion: %+d,%+d", x, y));
         }
         else {
@@ -1521,8 +1504,8 @@ MSWindowsScreen::warpCursorNoFlush(SInt32 x, SInt32 y)
     POINT cursorPos;
     GetCursorPos(&cursorPos);
 
-    // there is a bug or round error in SetCursorPos and GetCursorPos on 
-    // a high DPI setting. The check here is for Vista/7 login screen. 
+    // there is a bug or round error in SetCursorPos and GetCursorPos on
+    // a high DPI setting. The check here is for Vista/7 login screen.
     // since this feature is mainly for client, so only check on client.
     if (!isPrimary()) {
         if ((cursorPos.x != x) && (cursorPos.y != y)) {
@@ -1531,7 +1514,7 @@ MSWindowsScreen::warpCursorNoFlush(SInt32 x, SInt32 y)
             // when at Vista/7 login screen, SetCursorPos does not work (which could be
             // an MS security feature). instead we can use fakeMouseMove, which calls
             // mouse_event.
-            // IMPORTANT: as of implementing this function, it has an annoying side 
+            // IMPORTANT: as of implementing this function, it has an annoying side
             // effect; instead of the mouse returning to the correct exit point, it
             // returns to the center of the screen. this could have something to do with
             // the center screen warping technique used (see comments for onMouseMove
@@ -1723,7 +1706,7 @@ MSWindowsScreen::mapPressFromEvent(WPARAM msg, LPARAM) const
 }
 
 void
-MSWindowsScreen::updateKeysCB(void*)
+MSWindowsScreen::updateKeysCB()
 {
     // record which keys we think are down
     bool down[IKeyState::kNumButtons];
@@ -1888,6 +1871,7 @@ std::string& MSWindowsScreen::getDraggingFilename()
             SWP_SHOWWINDOW);
 
         // TODO: fake these keys properly
+        ARCH->sleep(.05f); // A tiny sleep here makes the DragEnter event on m_dropWindow trigger much more consistently
         fakeKeyDown(kKeyEscape, 8192, 1);
         fakeKeyUp(1);
         fakeMouseButton(kButtonLeft, false);
@@ -1909,21 +1893,39 @@ std::string& MSWindowsScreen::getDraggingFilename()
                 m_draggingFilename = filename;
             }
             else {
-                LOG((CLOG_DEBUG "drag file name is invalid: %s", filename.c_str()));
+                LOG((CLOG_ERR "drag file name is invalid: %s", filename.c_str()));
             }
         }
 
         if (m_draggingFilename.empty()) {
-            LOG((CLOG_DEBUG "failed to get drag file name from OLE"));
+            LOG((CLOG_ERR "failed to get drag file name from OLE"));
         }
     }
 
     return m_draggingFilename;
 }
 
-const std::string& MSWindowsScreen::getDropTarget() const
+const std::string&
+MSWindowsScreen::getDropTarget() const
 {
-    return m_desktopPath;
+    if (m_dropTargetPath.empty()) {
+        // SHGetFolderPath is deprecated in vista, but use it for xp support.
+        char desktopPath[MAX_PATH];
+        if (SUCCEEDED(SHGetFolderPath(NULL, CSIDL_DESKTOP, NULL, 0, desktopPath))) {
+            m_dropTargetPath = std::string(desktopPath);
+            LOG((CLOG_INFO "using desktop for drop target: %s", m_dropTargetPath.c_str()));
+        }
+        else {
+            LOG((CLOG_ERR "failed to get desktop path, no drop target available, error=%d", GetLastError()));
+        }
+    }
+    return m_dropTargetPath;
+}
+
+void
+MSWindowsScreen::setDropTarget(const std::string& target)
+{
+    m_dropTargetPath = target;
 }
 
 bool
@@ -1932,7 +1934,7 @@ MSWindowsScreen::isModifierRepeat(KeyModifierMask oldState, KeyModifierMask stat
     bool result = false;
 
     if (oldState == state && state != 0) {
-        UINT virtKey = (wParam & 0xffu);
+        UINT virtKey = (wParam >> 16) & 0xffu;
         if ((state & KeyModifierShift) != 0
             && (virtKey == VK_LSHIFT || virtKey == VK_RSHIFT)) {
             result = true;

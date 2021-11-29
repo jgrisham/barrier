@@ -1,11 +1,11 @@
 /*
  * barrier -- mouse and keyboard sharing utility
  * Copyright (C) 2012-2016 Symless Ltd.
- * 
+ *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * found in the file LICENSE that should have accompanied this file.
- * 
+ *
  * This package is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #include "SetupWizard.h"
 #include "MainWindow.h"
 #include "QBarrierApplication.h"
@@ -37,7 +37,7 @@ SetupWizard::SetupWizard(MainWindow& mainWindow, bool startMain) :
 
 #elif defined(Q_OS_WIN)
 
-    // when areo is disabled on windows, the next/back buttons
+    // when aero is disabled on windows, the next/back buttons
     // are hidden (must be a qt bug) -- resizing the window
     // to +1 of the original height seems to fix this.
     // NOTE: calling setMinimumSize after this will break
@@ -58,7 +58,7 @@ SetupWizard::~SetupWizard()
 }
 
 bool SetupWizard::validateCurrentPage()
-{    
+{
     QMessageBox message;
     message.setWindowTitle(tr("Setup Barrier"));
     message.setIcon(QMessageBox::Information);

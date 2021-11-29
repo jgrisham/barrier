@@ -91,7 +91,6 @@ if (UNIX)
     check_function_exists (poll HAVE_POLL)
     check_function_exists (sigwait HAVE_POSIX_SIGWAIT)
     check_function_exists (strftime HAVE_STRFTIME)
-    check_function_exists (vsnprintf HAVE_VSNPRINTF)
     check_function_exists (inet_aton HAVE_INET_ATON)
 
     # For some reason, the check_function_exists macro doesn't detect
@@ -166,10 +165,10 @@ if (UNIX)
             link_directories("/usr/local/lib")
         endif()
 
-	if (${CMAKE_SYSTEM_NAME} STREQUAL "OpenBSD")
-		set (CMAKE_REQUIRED_INCLUDES "${CMAKE_REQUIRED_INCLUDES};/usr/X11R6/include;/usr/local/include;/usr/local/include/avahi-compat-libdns_sd")
+        if (${CMAKE_SYSTEM_NAME} STREQUAL "OpenBSD")
+            set (CMAKE_REQUIRED_INCLUDES "${CMAKE_REQUIRED_INCLUDES};/usr/X11R6/include;/usr/local/include;/usr/local/include/avahi-compat-libdns_sd")
             set (CMAKE_REQUIRED_FLAGS "${CMAKE_REQUIRED_FLAGS} -L/usr/local/lib -L/usr/X11R6/lib")
-	    include_directories("/usr/local/include" "/usr/X11R6/include" "/usr/local/include/avahi-compat-libdns_sd")
+            include_directories("/usr/local/include" "/usr/X11R6/include" "/usr/local/include/avahi-compat-libdns_sd")
             link_directories("/usr/local/lib")
             link_directories("/usr/X11R6/lib")
         endif()
@@ -195,9 +194,8 @@ if (UNIX)
         check_include_files ("X11/extensions/XInput2.h" HAVE_XI2)
         check_include_files ("dns_sd.h" HAVE_DNSSD)
 
-        if (HAVE_X11_EXTENSIONS_DPMS_H)
-            # Assume that function prototypes declared, when include exists.
-            set (HAVE_DPMS_PROTOTYPES 1)
+        if (NOT HAVE_X11_EXTENSIONS_XTEST_H)
+            message (FATAL_ERROR "Missing header: X11/extensions/XTest.h")
         endif()
 
         if (NOT HAVE_X11_XKBLIB_H)
@@ -293,6 +291,9 @@ elseif (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     list (APPEND libs Wtsapi32 Userenv Wininet comsuppw Shlwapi)
 
     add_definitions (
+        /DSYSAPI_WIN32=1
+        /DWINAPI_MSWINDOWS=1
+        /D_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING=1  # tr1 is used from gtest and gmock
         /DWIN32
         /D_WINDOWS
         /D_CRT_SECURE_NO_WARNINGS
@@ -300,6 +301,8 @@ elseif (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
         /D_XKEYCHECK_H
     )
 endif()
+
+include_directories("${CMAKE_SOURCE_DIR}/ext/gulrak-filesystem/include")
 
 #
 # OpenSSL
@@ -318,10 +321,21 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
         ${OPENSSL_ROOT}/lib/ssleay32.lib
     )
 elseif (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    find_program(APT_PROGRAM "apt")
     find_program(BREW_PROGRAM "brew")
     find_program(PORT_PROGRAM "port")
-    
-    if (IS_DIRECTORY /opt/local AND PORT_PROGRAM)
+
+    if (IS_DIRECTORY /opt/procursus AND APT_PROGRAM)
+        # procursus/apt
+        set (OPENSSL_ROOT /opt/procursus)
+
+        include_directories (BEFORE SYSTEM ${OPENSSL_ROOT}/include)
+
+        set (OPENSSL_LIBS
+            ${OPENSSL_ROOT}/lib/libssl.a
+            ${OPENSSL_ROOT}/lib/libcrypto.a
+        )
+    elseif (IS_DIRECTORY /opt/local AND PORT_PROGRAM)
         # macports
         set (OPENSSL_ROOT /opt/local)
 
@@ -333,6 +347,16 @@ elseif (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     elseif (IS_DIRECTORY /usr/local/opt/openssl AND BREW_PROGRAM)
         # brew
         set (OPENSSL_ROOT /usr/local/opt/openssl)
+
+        include_directories (BEFORE SYSTEM ${OPENSSL_ROOT}/include)
+
+        set (OPENSSL_LIBS
+            ${OPENSSL_ROOT}/lib/libssl.a
+            ${OPENSSL_ROOT}/lib/libcrypto.a
+        )
+    elseif (IS_DIRECTORY /opt/homebrew/opt/openssl AND BREW_PROGRAM)
+        # brew
+        set (OPENSSL_ROOT /opt/homebrew/opt/openssl)
 
         include_directories (BEFORE SYSTEM ${OPENSSL_ROOT}/include)
 
@@ -370,7 +394,7 @@ macro (configure_files srcDir destDir)
         set (sourceFilePath ${srcDir}/${sourceFile})
         if (IS_DIRECTORY ${sourceFilePath})
             message (STATUS "Copying directory ${sourceFile}")
-            make_directory (${destDir/${sourceFile})
+            make_directory (${destDir}/${sourceFile})
         else()
             message (STATUS "Copying file ${sourceFile}")
             configure_file (${sourceFilePath} ${destDir}/${sourceFile} COPYONLY)
@@ -421,7 +445,7 @@ endif()
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     configure_files (${CMAKE_CURRENT_SOURCE_DIR}/dist/rpm ${CMAKE_BINARY_DIR}/rpm)
     install(FILES res/barrier.svg DESTINATION share/icons/hicolor/scalable/apps)
-    if("${VERSION_MAJOR}" STREQUAL "2") 
+    if("${VERSION_MAJOR}" STREQUAL "2")
         install(FILES res/barrier2.desktop DESTINATION share/applications)
     else()
         install(FILES res/barrier.desktop DESTINATION share/applications)
@@ -431,4 +455,7 @@ endif()
 else()
     message (STATUS "NOT configuring the installer")
 endif()
+
+enable_testing()
+
 add_subdirectory (src)

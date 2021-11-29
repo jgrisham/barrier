@@ -2,11 +2,11 @@
  * barrier -- mouse and keyboard sharing utility
  * Copyright (C) 2012-2016 Symless Ltd.
  * Copyright (C) 2002 Chris Schoeneman
- * 
+ *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * found in the file LICENSE that should have accompanied this file.
- * 
+ *
  * This package is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -17,10 +17,9 @@
  */
 
 #include "base/log_outputters.h"
-#include "base/TMethodJob.h"
 #include "arch/Arch.h"
 #include "base/String.h"
-
+#include "io/filesystem.h"
 #include <fstream>
 
 enum EFileLogOutputter {
@@ -260,7 +259,7 @@ FileLogOutputter::write(ELevel level, const char *message)
     bool moveFile = false;
 
     std::ofstream m_handle;
-    m_handle.open(m_fileName.c_str(), std::fstream::app);
+    barrier::open_utf8_path(m_handle, m_fileName, std::fstream::app);
     if (m_handle.is_open() && m_handle.fail() != true) {
         m_handle << message << std::endl;
 
@@ -305,7 +304,7 @@ MesssageBoxLogOutputter::~MesssageBoxLogOutputter()
 }
 
 void
-MesssageBoxLogOutputter::open(const char* title) 
+MesssageBoxLogOutputter::open(const char* title)
 {
     // do nothing
 }

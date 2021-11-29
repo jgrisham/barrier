@@ -34,13 +34,11 @@
 #include "base/EventQueue.h"
 #include "base/log_outputters.h"
 #include "base/FunctionEventJob.h"
-#include "base/TMethodJob.h"
 #include "base/IEventQueue.h"
 #include "base/Log.h"
 #include "base/TMethodEventJob.h"
 #include "common/Version.h"
 #include "common/DataDirectories.h"
-#include "common/PathUtilities.h"
 
 #if SYSAPI_WIN32
 #include "arch/win32/ArchMiscWindows.h"
@@ -128,30 +126,45 @@ ServerApp::help()
 #  define WINAPI_INFO ""
 #endif
 
+    // refer to custom profile directory even if not saved yet
+    barrier::fs::path profile_path = argsBase().m_profileDirectory;
+    if (profile_path.empty()) {
+        profile_path = barrier::DataDirectories::profile();
+    }
+
+    auto usr_config_path = (profile_path / barrier::fs::u8path(USR_CONFIG_NAME)).u8string();
+    auto sys_config_path = (barrier::DataDirectories::systemconfig() /
+                            barrier::fs::u8path(SYS_CONFIG_NAME)).u8string();
+
     std::ostringstream buffer;
-    buffer << "Start the barrier server component." << std::endl
-           << std::endl
+    buffer << "Start the barrier server component. The server shares the keyboard &\n"
+           << "mouse of the local machine with the connected clients based on the\n"
+           << "configuration file.\n"
+           << "\n"
            << "Usage: " << args().m_exename
            << " [--address <address>]"
            << " [--config <pathname>]"
-           << WINAPI_ARGS << HELP_SYS_ARGS << HELP_COMMON_ARGS << std::endl
-           << std::endl
-           << "Options:" << std::endl
-           << "  -a, --address <address>  listen for clients on the given address." << std::endl
-           << "  -c, --config <pathname>  use the named configuration file instead." << std::endl
-           << HELP_COMMON_INFO_1 << WINAPI_INFO << HELP_SYS_INFO << HELP_COMMON_INFO_2 << std::endl
-           << "Default options are marked with a *" << std::endl
-           << std::endl
-           << "The argument for --address is of the form: [<hostname>][:<port>].  The" << std::endl
-           << "hostname must be the address or hostname of an interface on the system." << std::endl
-           << "Placing brackets around an IPv6 address is required when also specifying " << std::endl
-           << "a port number and optional otherwise. The default is to listen on all" << std::endl
-           << "interfaces using port number " << kDefaultPort << "." << std::endl
-           << std::endl
-           << "If no configuration file pathname is provided then the first of the" << std::endl
-           << "following to load successfully sets the configuration:" << std::endl
-           << "  " << PathUtilities::concat(DataDirectories::profile(), USR_CONFIG_NAME) << std::endl
-           << "  " << PathUtilities::concat(DataDirectories::systemconfig(), SYS_CONFIG_NAME) << std::endl;
+           << WINAPI_ARGS << HELP_SYS_ARGS << HELP_COMMON_ARGS << "\n"
+           << "\n"
+           << "Options:\n"
+           << "  -a, --address <address>  listen for clients on the given address.\n"
+           << "  -c, --config <pathname>  use the named configuration file instead.\n"
+           << HELP_COMMON_INFO_1
+           << "      --disable-client-cert-checking disable client SSL certificate \n"
+              "                                     checking (deprecated)\n"
+           << WINAPI_INFO << HELP_SYS_INFO << HELP_COMMON_INFO_2 << "\n"
+           << "Default options are marked with a *\n"
+           << "\n"
+           << "The argument for --address is of the form: [<hostname>][:<port>].  The\n"
+           << "hostname must be the address or hostname of an interface on the system.\n"
+           << "Placing brackets around an IPv6 address is required when also specifying \n"
+           << "a port number and optional otherwise. The default is to listen on all\n"
+           << "interfaces using port number " << kDefaultPort << ".\n"
+           << "\n"
+           << "If no configuration file pathname is provided then the first of the\n"
+           << "following to load successfully sets the configuration:\n"
+           << "  " << usr_config_path << "\n"
+           << "  " << sys_config_path << "\n";
 
     LOG((CLOG_PRINT "%s", buffer.str().c_str()));
 }
@@ -188,25 +201,25 @@ ServerApp::loadConfig()
 
     // load the default configuration if no explicit file given
     else {
-        String path = DataDirectories::profile();
+        auto path = barrier::DataDirectories::profile();
         if (!path.empty()) {
             // complete path
-            path = PathUtilities::concat(path, USR_CONFIG_NAME);
+            path /= barrier::fs::u8path(USR_CONFIG_NAME);
 
             // now try loading the user's configuration
-            if (loadConfig(path)) {
+            if (loadConfig(path.u8string())) {
                 loaded            = true;
-                args().m_configFile = path;
+                args().m_configFile = path.u8string();
             }
         }
         if (!loaded) {
             // try the system-wide config file
-            path = DataDirectories::systemconfig();
+            path = barrier::DataDirectories::systemconfig();
             if (!path.empty()) {
-                path = PathUtilities::concat(path, SYS_CONFIG_NAME);
-                if (loadConfig(path)) {
+                path /= barrier::fs::u8path(SYS_CONFIG_NAME);
+                if (loadConfig(path.u8string())) {
                     loaded            = true;
-                    args().m_configFile = path;
+                    args().m_configFile = path.u8string();
                 }
             }
         }
@@ -496,6 +509,9 @@ barrier::Screen*
 ServerApp::openServerScreen()
 {
     barrier::Screen* screen = createScreen();
+    if (!argsBase().m_dropTarget.empty()) {
+        screen->setDropTarget(argsBase().m_dropTarget);
+    }
     screen->setEnableDragDrop(argsBase().m_enableDragDrop);
     m_events->adoptHandler(m_events->forIScreen().error(),
         screen->getEventTarget(),
@@ -643,11 +659,18 @@ ServerApp::handleResume(const Event&, void*)
 ClientListener*
 ServerApp::openClientListener(const NetworkAddress& address)
 {
+    auto security_level = ConnectionSecurityLevel::PLAINTEXT;
+    if (args().m_enableCrypto) {
+        security_level = ConnectionSecurityLevel::ENCRYPTED;
+        if (args().check_client_certificates) {
+            security_level = ConnectionSecurityLevel::ENCRYPTED_AUTHENTICATED;
+        }
+    }
+
     ClientListener* listen = new ClientListener(
         address,
         new TCPSocketFactory(m_events, getSocketMultiplexer()),
-        m_events,
-        args().m_enableCrypto);
+        m_events, security_level);
 
     m_events->adoptHandler(
         m_events->forClientListener().connected(), listen,
@@ -775,10 +798,7 @@ ServerApp::mainLoop()
 
 #if defined(MAC_OS_X_VERSION_10_7)
 
-    Thread thread(
-        new TMethodJob<ServerApp>(
-            this, &ServerApp::runEventsLoop,
-            NULL));
+    Thread thread([this](){ run_events_loop(); });
 
     // wait until carbon loop is ready
     OSXScreen* screen = dynamic_cast<OSXScreen*>(
@@ -823,7 +843,7 @@ ServerApp::runInner(int argc, char** argv, ILogOutputter* outputter, StartupFunc
     // general initialization
     m_barrierAddress = new NetworkAddress;
     args().m_config         = new Config(m_events);
-    args().m_exename = PathUtilities::basename(argv[0]);
+    args().m_exename = ArgParser::parse_exename(argv[0]);
 
     // install caller's output filter
     if (outputter != NULL) {

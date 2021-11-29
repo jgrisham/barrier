@@ -2,11 +2,11 @@
  * barrier -- mouse and keyboard sharing utility
  * Copyright (C) 2012-2016 Symless Ltd.
  * Copyright (C) 2008 Volker Lanz (vl@fidra.de)
- * 
+ *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * found in the file LICENSE that should have accompanied this file.
- * 
+ *
  * This package is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -32,9 +32,6 @@ class QTextStream;
 
 class Action
 {
-    friend class ActionDialog;
-    friend QTextStream& operator<<(QTextStream& outStream, const Action& action);
-
     public:
         enum ActionType { keyDown, keyUp, keystroke,
                           switchToScreen, toggleScreen, switchInDirection,
@@ -48,25 +45,31 @@ class Action
     public:
         QString text() const;
         const KeySequence& keySequence() const { return m_KeySequence; }
+        void setKeySequence(const KeySequence& seq) { m_KeySequence = seq; }
+
         void loadSettings(QSettings& settings);
         void saveSettings(QSettings& settings) const;
-        int type() const { return m_Type; }
-        const QStringList& typeScreenNames() const { return m_TypeScreenNames; }
-        const QString& switchScreenName() const { return m_SwitchScreenName; }
-        int switchDirection() const { return m_SwitchDirection; }
-        int lockCursorMode() const { return m_LockCursorMode; }
-        bool activeOnRelease() const { return m_ActiveOnRelease; }
-        bool haveScreens() const { return m_HasScreens; }
 
-    protected:
-        KeySequence& keySequence() { return m_KeySequence; }
-        void setKeySequence(const KeySequence& seq) { m_KeySequence = seq; }
+        int type() const { return m_Type; }
         void setType(int t) { m_Type = t; }
-        QStringList& typeScreenNames() { return m_TypeScreenNames; }
+
+        const QStringList& typeScreenNames() const { return m_TypeScreenNames; }
+        void appendTypeScreenName(QString name) { m_TypeScreenNames.append(name); }
+        void clearTypeScreenNames() { m_TypeScreenNames.clear(); }
+
+        const QString& switchScreenName() const { return m_SwitchScreenName; }
         void setSwitchScreenName(const QString& n) { m_SwitchScreenName = n; }
+
+        int switchDirection() const { return m_SwitchDirection; }
         void setSwitchDirection(int d) { m_SwitchDirection = d; }
+
+        int lockCursorMode() const { return m_LockCursorMode; }
         void setLockCursorMode(int m) { m_LockCursorMode = m; }
+
+        bool activeOnRelease() const { return m_ActiveOnRelease; }
         void setActiveOnRelease(bool b) { m_ActiveOnRelease = b; }
+
+        bool haveScreens() const { return m_HasScreens; }
         void setHaveScreens(bool b) { m_HasScreens = b; }
 
     private:
@@ -83,8 +86,6 @@ class Action
         static const char* m_SwitchDirectionNames[];
         static const char* m_LockCursorModeNames[];
 };
-
-typedef QList<Action> ActionList;
 
 QTextStream& operator<<(QTextStream& outStream, const Action& action);
 

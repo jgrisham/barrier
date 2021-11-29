@@ -2,11 +2,11 @@
  * barrier -- mouse and keyboard sharing utility
  * Copyright (C) 2012-2016 Symless Ltd.
  * Copyright (C) 2002 Chris Schoeneman
- * 
+ *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * found in the file LICENSE that should have accompanied this file.
- * 
+ *
  * This package is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -73,7 +73,7 @@ public:
     virtual void        closeMutex(ArchMutex);
     virtual void        lockMutex(ArchMutex);
     virtual void        unlockMutex(ArchMutex);
-    virtual ArchThread    newThread(ThreadFunc, void*);
+    virtual ArchThread newThread(const std::function<void()>& func);
     virtual ArchThread    newCurrentThread();
     virtual ArchThread    copyThread(ArchThread);
     virtual void        closeThread(ArchThread);
@@ -83,7 +83,6 @@ public:
     virtual bool        wait(ArchThread, double timeout);
     virtual bool        isSameThread(ArchThread, ArchThread);
     virtual bool        isExitedThread(ArchThread);
-    virtual void*        getResultOfThread(ArchThread);
     virtual ThreadID    getIDOfThread(ArchThread);
     virtual void        setSignalHandler(ESignal, SignalFunc, void*);
     virtual void        raiseSignal(ESignal);

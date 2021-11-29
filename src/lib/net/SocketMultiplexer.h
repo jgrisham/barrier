@@ -2,11 +2,11 @@
  * barrier -- mouse and keyboard sharing utility
  * Copyright (C) 2012-2016 Symless Ltd.
  * Copyright (C) 2004 Chris Schoeneman
- * 
+ *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * found in the file LICENSE that should have accompanied this file.
- * 
+ *
  * This package is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -67,7 +67,7 @@ private:
     // and m_update while m_pollable and m_polling are true.  all other
     // threads must only modify these when m_pollable and m_polling are
     // false.  only the service thread sets m_polling.
-    void                serviceThread(void*);
+    void service_thread();
 
     // create, iterate, and destroy a cursor.  a cursor is used to
     // safely iterate through the job list while other threads modify

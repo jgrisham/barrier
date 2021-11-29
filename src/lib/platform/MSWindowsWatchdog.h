@@ -6,7 +6,7 @@
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * found in the file LICENSE that should have accompanied this file.
- * 
+ *
  * This package is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -48,8 +48,8 @@ public:
     void                setFileLogOutputter(FileLogOutputter* outputter);
 
 private:
-    void                mainLoop(void*);
-    void                outputLoop(void*);
+    void main_loop();
+    void output_loop();
     void                shutdownProcess(HANDLE handle, DWORD pid, int timeout);
     void                shutdownExistingProcesses();
     HANDLE                duplicateProcessToken(HANDLE process, LPSECURITY_ATTRIBUTES security);
@@ -81,7 +81,7 @@ private:
 
 //! Relauncher error
 /*!
-An error occured in the process watchdog.
+An error occurred in the process watchdog.
 */
 class XMSWindowsWatchdogError : public XBarrier {
 public:

@@ -2,11 +2,11 @@
  * barrier -- mouse and keyboard sharing utility
  * Copyright (C) 2012-2016 Symless Ltd.
  * Copyright (C) 2002 Chris Schoeneman
- * 
+ *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * found in the file LICENSE that should have accompanied this file.
- * 
+ *
  * This package is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -43,7 +43,7 @@ public:
     If \c hostname can be parsed as a numerical address then that's how
     it's used, otherwise it's used as a host name.  If \c hostname ends
     in ":[0-9]+" then that suffix is extracted and used as the port,
-    overridding the port parameter.  The resulting port must be a valid
+    overriding the port parameter.  The resulting port must be a valid
     port number (zero is not a valid port number) otherwise \c XSocketAddress
     is thrown with an error of \c XSocketAddress::kBadPort.  The hostname
     is not resolved by the c'tor;  use \c resolve to do that.

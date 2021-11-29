@@ -2,11 +2,11 @@
  * barrier -- mouse and keyboard sharing utility
  * Copyright (C) 2012-2016 Symless Ltd.
  * Copyright (C) 2008 Volker Lanz (vl@fidra.de)
- * 
+ *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * found in the file LICENSE that should have accompanied this file.
- * 
+ *
  * This package is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -183,7 +183,7 @@ void ServerConfig::loadSettings()
         settings().setArrayIndex(i);
         Hotkey h;
         h.loadSettings(settings());
-        hotkeys().append(h);
+        hotkeys().push_back(h);
     }
     settings().endArray();
 
@@ -212,17 +212,19 @@ QTextStream& operator<<(QTextStream& outStream, const ServerConfig& config)
 {
     outStream << "section: screens" << endl;
 
-    foreach (const Screen& s, config.screens())
+    for (const Screen& s : config.screens()) {
         if (!s.isNull())
             s.writeScreensSection(outStream);
+    }
 
     outStream << "end" << endl << endl;
 
     outStream << "section: aliases" << endl;
 
-    foreach (const Screen& s, config.screens())
+    for (const Screen& s : config.screens()) {
         if (!s.isNull())
             s.writeAliasesSection(outStream);
+    }
 
     outStream << "end" << endl << endl;
 
@@ -270,8 +272,9 @@ QTextStream& operator<<(QTextStream& outStream, const ServerConfig& config)
 
     outStream << "\t" << "switchCornerSize = " << config.switchCornerSize() << endl;
 
-    foreach(const Hotkey& hotkey, config.hotkeys())
+    for (const Hotkey& hotkey : config.hotkeys()) {
         outStream << hotkey;
+    }
 
     outStream << "end" << endl << endl;
 
@@ -282,9 +285,10 @@ int ServerConfig::numScreens() const
 {
     int rval = 0;
 
-    foreach(const Screen& s, screens())
+    for (const Screen& s : screens()) {
         if (!s.isNull())
             rval++;
+    }
 
     return rval;
 }

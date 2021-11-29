@@ -1,11 +1,11 @@
 /*
  * barrier -- mouse and keyboard sharing utility
  * Copyright (C) 2014-2016 Symless Ltd.
- * 
+ *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * found in the file LICENSE that should have accompanied this file.
- * 
+ *
  * This package is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -18,6 +18,7 @@
 #include "barrier/DropHelper.h"
 
 #include "base/Log.h"
+#include "io/filesystem.h"
 
 #include <fstream>
 
@@ -35,15 +36,15 @@ DropHelper::writeToDir(const String& destination, DragFileList& fileList, String
         dropTarget.append("/");
 #endif
         dropTarget.append(fileList.at(0).getFilename());
-        file.open(dropTarget.c_str(), std::ios::out | std::ios::binary);
+        barrier::open_utf8_path(file, dropTarget, std::ios::out | std::ios::binary);
         if (!file.is_open()) {
             LOG((CLOG_ERR "drop file failed: can not open %s", dropTarget.c_str()));
         }
-        
+
         file.write(data.c_str(), data.size());
         file.close();
 
-        LOG((CLOG_DEBUG "%s is saved to %s", fileList.at(0).getFilename().c_str(), destination.c_str()));
+        LOG((CLOG_INFO "dropped file \"%s\" in \"%s\"", fileList.at(0).getFilename().c_str(), destination.c_str()));
 
         fileList.clear();
     }

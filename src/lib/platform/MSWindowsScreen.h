@@ -3,11 +3,11 @@
  * Copyright (C) 2018 Debauchee Open Source Group
  * Copyright (C) 2012-2016 Symless Ltd.
  * Copyright (C) 2002 Chris Schoeneman
- * 
+ *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * found in the file LICENSE that should have accompanied this file.
- * 
+ *
  * This package is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -120,6 +120,7 @@ public:
     virtual void        fakeDraggingFiles(DragFileList fileList);
     virtual std::string& getDraggingFilename();
     virtual const std::string& getDropTarget() const;
+    virtual void        setDropTarget(const std::string&);
 
 protected:
     // IPlatformScreen overrides
@@ -198,7 +199,7 @@ private: // HACK
     bool                mapPressFromEvent(WPARAM msg, LPARAM button) const;
 
     // job to update the key state
-    void                updateKeysCB(void*);
+    void updateKeysCB();
 
     // determine whether the mouse is hidden by the system and force
     // it to be displayed if user has entered this secondary screen.
@@ -212,16 +213,16 @@ private: // HACK
 
     // our window proc
     static LRESULT CALLBACK wndProc(HWND, UINT, WPARAM, LPARAM);
-    
+
     // save last position of mouse to compute next delta movement
     void saveMousePosition(SInt32 x, SInt32 y);
 
     // check if it is a modifier key repeating message
-    bool                isModifierRepeat(KeyModifierMask oldState, 
+    bool                isModifierRepeat(KeyModifierMask oldState,
                             KeyModifierMask state, WPARAM wParam) const;
 
     // send drag info and data back to server
-    void                sendDragThread(void*);
+    void send_drag_thread();
 
 private:
     struct HotKeyItem {
@@ -324,15 +325,15 @@ private:
     bool                m_gotOldMouseKeys;
     MOUSEKEYS            m_mouseKeys;
     MOUSEKEYS            m_oldMouseKeys;
-    
+
     MSWindowsHook        m_hook;
 
     static MSWindowsScreen*
                         s_screen;
-    
+
     IEventQueue*        m_events;
 
-    std::string                m_desktopPath;
+    mutable std::string m_dropTargetPath;
 
     MSWindowsDropTarget*
                         m_dropTarget;

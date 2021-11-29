@@ -2,11 +2,11 @@
  * barrier -- mouse and keyboard sharing utility
  * Copyright (C) 2012-2016 Symless Ltd.
  * Copyright (C) 2002 Chris Schoeneman
- * 
+ *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * found in the file LICENSE that should have accompanied this file.
- * 
+ *
  * This package is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -19,6 +19,8 @@
 #include "barrier/ProtocolUtil.h"
 #include "io/IStream.h"
 #include "base/Log.h"
+#include "barrier/protocol_types.h"
+#include "barrier/XBarrier.h"
 #include "common/stdvector.h"
 #include "base/String.h"
 
@@ -80,7 +82,7 @@ ProtocolUtil::vwritef(barrier::IStream* stream,
 
     // fill buffer
     UInt8* buffer = new UInt8[size];
-    writef(buffer, fmt, args);
+    writef_void(buffer, fmt, args);
 
     try {
         // write buffer
@@ -159,6 +161,10 @@ ProtocolUtil::vreadf(barrier::IStream* stream, const char* fmt, va_list args)
                            (static_cast<UInt32>(buffer[2]) <<  8) |
                             static_cast<UInt32>(buffer[3]);
 
+                if (n > PROTOCOL_MAX_LIST_LENGTH) {
+                    throw XBadClient("Too long message received");
+                }
+
                 // convert it
                 void* v = va_arg(args, void*);
                 switch (len) {
@@ -210,6 +216,10 @@ ProtocolUtil::vreadf(barrier::IStream* stream, const char* fmt, va_list args)
                              (static_cast<UInt32>(buffer[1]) << 16) |
                              (static_cast<UInt32>(buffer[2]) <<  8) |
                               static_cast<UInt32>(buffer[3]);
+
+                if (len > PROTOCOL_MAX_STRING_LENGTH) {
+                    throw XBadClient("Too long message received");
+                }
 
                 // use a fixed size buffer if its big enough
                 const bool useFixed = (len <= sizeof(buffer));
@@ -339,7 +349,7 @@ ProtocolUtil::getLength(const char* fmt, va_list args)
 }
 
 void
-ProtocolUtil::writef(void* buffer, const char* fmt, va_list args)
+ProtocolUtil::writef_void(void* buffer, const char* fmt, va_list args)
 {
     UInt8* dst = static_cast<UInt8*>(buffer);
 

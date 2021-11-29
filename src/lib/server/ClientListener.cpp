@@ -2,11 +2,11 @@
  * barrier -- mouse and keyboard sharing utility
  * Copyright (C) 2012-2016 Symless Ltd.
  * Copyright (C) 2004 Chris Schoeneman
- * 
+ *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * found in the file LICENSE that should have accompanied this file.
- * 
+ *
  * This package is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -36,25 +36,24 @@
 ClientListener::ClientListener(const NetworkAddress& address,
                 ISocketFactory* socketFactory,
                 IEventQueue* events,
-                bool enableCrypto) :
+                               ConnectionSecurityLevel security_level) :
     m_socketFactory(socketFactory),
     m_server(NULL),
     m_events(events),
-    m_useSecureNetwork(enableCrypto)
+    security_level_{security_level}
 {
     assert(m_socketFactory != NULL);
 
     try {
-        m_listen = m_socketFactory->createListen(
-                ARCH->getAddrFamily(address.getAddress()),
-                m_useSecureNetwork);
+        m_listen = m_socketFactory->createListen(ARCH->getAddrFamily(address.getAddress()),
+                                                 security_level);
 
         // setup event handler
         m_events->adoptHandler(m_events->forIListenSocket().connecting(),
                     m_listen,
                     new TMethodEventJob<ClientListener>(this,
                             &ClientListener::handleClientConnecting));
-        
+
         // bind listen address
         LOG((CLOG_DEBUG1 "binding listen socket"));
         m_listen->bind(address);
@@ -130,17 +129,17 @@ ClientListener::handleClientConnecting(const Event&, void*)
     if (socket == NULL) {
         return;
     }
-    
+
     m_clientSockets.insert(socket);
 
     m_events->adoptHandler(m_events->forClientListener().accepted(),
                 socket->getEventTarget(),
                 new TMethodEventJob<ClientListener>(this,
                         &ClientListener::handleClientAccepted, socket));
-    
+
     // When using non SSL, server accepts clients immediately, while SSL
     // has to call secure accept which may require retry
-    if (!m_useSecureNetwork) {
+    if (security_level_ == ConnectionSecurityLevel::PLAINTEXT) {
         m_events->addEvent(Event(m_events->forClientListener().accepted(),
                                 socket->getEventTarget()));
     }
@@ -152,7 +151,7 @@ ClientListener::handleClientAccepted(const Event&, void* vsocket)
     LOG((CLOG_NOTE "accepted client connection"));
 
     IDataSocket* socket = static_cast<IDataSocket*>(vsocket);
-    
+
     // filter socket messages, including a packetizing filter
     barrier::IStream* stream = new PacketStreamFilter(m_events, socket, false);
     assert(m_server != NULL);
@@ -184,7 +183,6 @@ ClientListener::handleUnknownClient(const Event&, void* vclient)
 
     // get the real client proxy and install it
     ClientProxy* client = unknownClient->orphanClientProxy();
-    bool handshakeOk = true;
     if (client != NULL) {
         // handshake was successful
         m_waitingClients.push_back(client);
@@ -196,20 +194,17 @@ ClientListener::handleUnknownClient(const Event&, void* vclient)
                             new TMethodEventJob<ClientListener>(this,
                                 &ClientListener::handleClientDisconnected,
                                 client));
-    }
-    else {
-        handshakeOk = false;
+    } else {
+        auto* stream = unknownClient->getStream();
+        if (stream) {
+            stream->close();
+        }
     }
 
     // now finished with unknown client
     m_events->removeHandler(m_events->forClientProxyUnknown().success(), client);
     m_events->removeHandler(m_events->forClientProxyUnknown().failure(), client);
     m_newClients.erase(unknownClient);
-    PacketStreamFilter* streamFileter = dynamic_cast<PacketStreamFilter*>(unknownClient->getStream());
-    IDataSocket* socket = NULL;
-    if (streamFileter != NULL) {
-        socket = dynamic_cast<IDataSocket*>(streamFileter->getStream());
-    }
 
     delete unknownClient;
 }

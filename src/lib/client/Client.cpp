@@ -2,11 +2,11 @@
  * barrier -- mouse and keyboard sharing utility
  * Copyright (C) 2012-2016 Symless Ltd.
  * Copyright (C) 2002 Chris Schoeneman
- * 
+ *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * found in the file LICENSE that should have accompanied this file.
- * 
+ *
  * This package is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -37,7 +37,6 @@
 #include "base/Log.h"
 #include "base/IEventQueue.h"
 #include "base/TMethodEventJob.h"
-#include "base/TMethodJob.h"
 
 #include <cstring>
 #include <cstdlib>
@@ -127,6 +126,12 @@ Client::connect()
         return;
     }
 
+    auto security_level = ConnectionSecurityLevel::PLAINTEXT;
+    if (m_useSecureNetwork) {
+        // client always authenticates server
+        security_level = ConnectionSecurityLevel::ENCRYPTED_AUTHENTICATED;
+    }
+
     try {
         // resolve the server hostname.  do this every time we connect
         // in case we couldn't resolve the address earlier or the address
@@ -134,20 +139,19 @@ Client::connect()
         // being shuttled between various networks).  patch by Brent
         // Priddy.
         m_serverAddress.resolve();
-        
+
         // m_serverAddress will be null if the hostname address is not reolved
         if (m_serverAddress.getAddress() != NULL) {
           // to help users troubleshoot, show server host name (issue: 60)
-          LOG((CLOG_NOTE "connecting to '%s': %s:%i", 
+          LOG((CLOG_NOTE "connecting to '%s': %s:%i",
           m_serverAddress.getHostname().c_str(),
           ARCH->addrToString(m_serverAddress.getAddress()).c_str(),
           m_serverAddress.getPort()));
         }
 
         // create the socket
-        IDataSocket* socket = m_socketFactory->create(
-                ARCH->getAddrFamily(m_serverAddress.getAddress()),
-                m_useSecureNetwork);
+        IDataSocket* socket = m_socketFactory->create(ARCH->getAddrFamily(m_serverAddress.getAddress()),
+                                                      security_level);
         m_socket = dynamic_cast<TCPSocket*>(socket);
 
         // filter socket messages, including a packetizing filter
@@ -255,7 +259,7 @@ Client::leave()
     m_active = false;
 
     m_screen->leave();
-    
+
     if (m_enableClipboard) {
         // send clipboards that we own and that have changed
         for (ClipboardID id = 0; id < kClipboardEnd; ++id) {
@@ -755,9 +759,7 @@ void
 Client::onFileRecieveCompleted()
 {
     if (isReceivedFileSizeValid()) {
-        m_writeToDropDirThread = new Thread(
-            new TMethodJob<Client>(
-                this, &Client::writeToDropDirThread));
+        m_writeToDropDirThread = new Thread([this](){ write_to_drop_dir_thread(); });
     }
 }
 
@@ -767,15 +769,14 @@ Client::handleStopRetry(const Event&, void*)
     m_args.m_restartable = false;
 }
 
-void
-Client::writeToDropDirThread(void*)
+void Client::write_to_drop_dir_thread()
 {
     LOG((CLOG_DEBUG "starting write to drop dir thread"));
 
     while (m_screen->isFakeDraggingStarted()) {
         ARCH->sleep(.1f);
     }
-    
+
     DropHelper::writeToDir(m_screen->getDropTarget(), m_dragFileList,
                     m_receivedFileData);
 }
@@ -790,7 +791,7 @@ Client::dragInfoReceived(UInt32 fileNum, std::string data)
     }
 
     DragInformation::parseDragInfo(m_dragFileList, fileNum, data);
-    
+
     m_screen->startDraggingFiles(m_dragFileList);
 }
 
@@ -806,19 +807,14 @@ Client::sendFileToServer(const char* filename)
     if (m_sendFileThread != NULL) {
         StreamChunker::interruptFile();
     }
-    
-    m_sendFileThread = new Thread(
-        new TMethodJob<Client>(
-            this, &Client::sendFileThread,
-            static_cast<void*>(const_cast<char*>(filename))));
+
+    m_sendFileThread = new Thread([this, filename]() { send_file_thread(filename); });
 }
 
-void
-Client::sendFileThread(void* filename)
+void Client::send_file_thread(const char* filename)
 {
     try {
-        char* name  = static_cast<char*>(filename);
-        StreamChunker::sendFile(name, m_events, this);
+        StreamChunker::sendFile(filename, m_events, this);
     }
     catch (std::runtime_error& error) {
         LOG((CLOG_ERR "failed sending file chunks: %s", error.what()));

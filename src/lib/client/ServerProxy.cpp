@@ -2,11 +2,11 @@
  * barrier -- mouse and keyboard sharing utility
  * Copyright (C) 2012-2016 Symless Ltd.
  * Copyright (C) 2002 Chris Schoeneman
- * 
+ *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * found in the file LICENSE that should have accompanied this file.
- * 
+ *
  * This package is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -26,6 +26,7 @@
 #include "barrier/ProtocolUtil.h"
 #include "barrier/option_types.h"
 #include "barrier/protocol_types.h"
+#include "barrier/XBarrier.h"
 #include "io/IStream.h"
 #include "base/Log.h"
 #include "base/IEventQueue.h"
@@ -124,16 +125,26 @@ ServerProxy::handleData(const Event&, void*)
 
         // parse message
         LOG((CLOG_DEBUG2 "msg from server: %c%c%c%c", code[0], code[1], code[2], code[3]));
-        switch ((this->*m_parser)(code)) {
-        case kOkay:
-            break;
+        try {
+            switch ((this->*m_parser)(code)) {
+            case kOkay:
+                break;
 
-        case kUnknown:
-            LOG((CLOG_ERR "invalid message from server: %c%c%c%c", code[0], code[1], code[2], code[3]));
+            case kUnknown:
+                LOG((CLOG_ERR "invalid message from server: %c%c%c%c", code[0], code[1], code[2], code[3]));
+                m_client->disconnect("invalid message from server");
+                return;
+
+            case kDisconnect:
+                return;
+            }
+        } catch (const XBadClient& e) {
+            // TODO: disconnect handling is currently dispersed across both parseMessage() and
+            // handleData() functions, we should collect that to a single place
+
+            LOG((CLOG_ERR "protocol error from server: %s", e.what()));
+            ProtocolUtil::writef(m_stream, kMsgEBad);
             m_client->disconnect("invalid message from server");
-            return;
-
-        case kDisconnect:
             return;
         }
 
@@ -553,7 +564,7 @@ ServerProxy::setClipboard()
     static std::string dataCached;
     ClipboardID id;
     UInt32 seq;
-    
+
     int r = ClipboardChunk::assemble(m_stream, dataCached, id, seq);
 
     if (r == kStart) {
@@ -562,7 +573,7 @@ ServerProxy::setClipboard()
     }
     else if (r == kFinish) {
         LOG((CLOG_DEBUG "received clipboard %d size=%d", id, dataCached.size()));
-        
+
         // forward
         Clipboard clipboard;
         clipboard.unmarshall(dataCached, 0);
